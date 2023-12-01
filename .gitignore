@@ -1,3 +1,7 @@
 node_modules
 dist
 yarn-error.log
+clover.xml
+coverage-final.json
+lcov.info
+coverage/
