@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable no-console */
 import "@azure/cosmos";
 import {
   ChangeFeedIteratorOptions,
@@ -9,6 +8,7 @@ import {
   StatusCodes,
 } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { getChangeFeedIteratorOptions, processChangeFeed } from "../cosmos";
 import {
   ContinuationTokenItem,
@@ -55,7 +55,7 @@ describe("cosmosConnect", () => {
     const endpoint = "your-endpoint";
     const key = "your-key";
 
-    const result = await cosmosConnect(endpoint, key)();
+    const result = cosmosConnect(endpoint, key);
     expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(E.right(mockCosmosClient));
   });
@@ -64,7 +64,7 @@ describe("cosmosConnect", () => {
     const endpoint = "invalid-endpoint";
     const key = "invalid-key";
 
-    const result = await cosmosConnect(endpoint, key)();
+    const result = cosmosConnect(endpoint, key);
     expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(
       E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`))
@@ -105,12 +105,16 @@ describe("getItemById", () => {
       query: `SELECT * from c WHERE c.id = @id`,
       parameters: [{ name: "@id", value: id.replace(" ", "-") }],
     });
-
-    const expectedTaskEitherResult = {
-      _tag: "Right",
-      right: { _tag: "Some", value: { id: "test-id", lease: "test-lease" } },
-    };
-    expect(result).toEqual(expectedTaskEitherResult);
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right).toEqual(
+        O.some({
+          id: "test-id",
+          lease: "test-lease",
+        })
+      );
+    }
   });
 
   it("should handle error when getting item by ID", async () => {
@@ -124,14 +128,15 @@ describe("getItemById", () => {
       parameters: [{ name: "@id", value: testID.replace(" ", "-") }],
     });
 
-    const expectedTaskEitherResult = {
-      _tag: "Left",
-      left: new Error(
-        `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`
-      ),
-    };
-
-    expect(result).toEqual(expectedTaskEitherResult);
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result._tag).toBe("Left");
+      expect(result.left).toEqual(
+        new Error(
+          `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`
+        )
+      );
+    }
   });
 
   it("should handle empty result when getting item by ID", async () => {
@@ -146,11 +151,11 @@ describe("getItemById", () => {
       parameters: [{ name: "@id", value: testID.replace(" ", "-") }],
     });
 
-    const expectedTaskEitherResult = {
-      _tag: "Right",
-      right: { _tag: "None" },
-    };
-    expect(result).toEqual(expectedTaskEitherResult);
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right._tag).toEqual("None");
+    }
   });
 });
 
@@ -168,34 +173,32 @@ describe("getChangeFeedIteratorOptions", () => {
       maxItemCount
     );
 
-    const expectedOptions = {
-      _tag: "Right",
-      right: {
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right).toEqual({
         changeFeedStartFrom: {
           _tag: "Continuation",
           value: "token",
         },
         maxItemCount: 10,
-      },
-    };
-
-    expect(result).toEqual(expectedOptions);
+      });
+    }
   });
 
   it("should return ChangeFeedIteratorOptions with Beginning when continuationToken is not provided", () => {
     const result = getChangeFeedIteratorOptions();
 
-    const expectedOptions = {
-      _tag: "Right",
-      right: {
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right).toEqual({
         changeFeedStartFrom: {
           _tag: "Beginning",
         },
         maxItemCount: 1,
-      },
-    };
-
-    expect(result).toEqual(expectedOptions);
+      });
+    }
   });
 });
 
@@ -247,7 +250,11 @@ describe("getAndProcessChangeFeed", () => {
       mockLeaseContainer
     )();
 
-    expect(result).toEqual({ _tag: "Right", right: undefined });
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right).toEqual(undefined);
+    }
 
     expect(
       mockProcessContainer.items.getChangeFeedIterator
@@ -286,7 +293,11 @@ describe("getAndProcessChangeFeed", () => {
       mockLeaseContainer
     )();
 
-    expect(result).toEqual({ _tag: "Right", right: undefined });
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right).toEqual(undefined);
+    }
 
     expect(
       mockProcessContainer.items.getChangeFeedIterator
@@ -312,7 +323,6 @@ describe("upsertItem", () => {
       () => Promise<void>
     );
 
-    // Chiama la funzione upsertItem con il mockContainer e un oggetto fittizio
     const result = await upsertItem(mockUpsert, {
       id: "testId",
       lease: "testLease",
@@ -323,7 +333,11 @@ describe("upsertItem", () => {
       lease: "testLease",
     });
 
-    expect(E.isRight(result)).toBe(true);
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result._tag).toBe("Right");
+      expect(result.right).toEqual(undefined);
+    }
   });
 
   it("should handle errors during upsert", async () => {
@@ -341,6 +355,6 @@ describe("upsertItem", () => {
       lease: "testLease",
     });
 
-    expect(E.isLeft(result)).toBe(true);
+    expect(E.isLeft(result)).toBeTruthy();
   });
 });

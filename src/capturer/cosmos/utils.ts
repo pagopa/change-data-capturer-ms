@@ -11,14 +11,13 @@ import { pipe } from "fp-ts/lib/function";
 export const cosmosConnect = (
   endpoint: string,
   key: string
-): TE.TaskEither<Error, CosmosClient> =>
+): E.Either<Error, CosmosClient> =>
   pipe(
     E.tryCatch(
       () => new CosmosClient({ endpoint, key }),
       (reason) =>
         new Error(`Impossible to connect to Cosmos: " ${String(reason)}`)
-    ),
-    TE.fromEither
+    )
   );
 
 export const upsertItem = <T>(
