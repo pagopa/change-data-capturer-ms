@@ -107,7 +107,6 @@ describe("getItemById", () => {
     });
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
       expect(result.right).toEqual(
         O.some({
           id: "test-id",
@@ -130,7 +129,6 @@ describe("getItemById", () => {
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
-      expect(result._tag).toBe("Left");
       expect(result.left).toEqual(
         new Error(
           `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`
@@ -153,8 +151,7 @@ describe("getItemById", () => {
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
-      expect(result.right._tag).toEqual("None");
+      expect(O.isSome(result.right)).toBe(false);
     }
   });
 });
@@ -175,7 +172,6 @@ describe("getChangeFeedIteratorOptions", () => {
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
       expect(result.right).toEqual({
         changeFeedStartFrom: {
           _tag: "Continuation",
@@ -191,7 +187,6 @@ describe("getChangeFeedIteratorOptions", () => {
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
       expect(result.right).toEqual({
         changeFeedStartFrom: {
           _tag: "Beginning",
@@ -252,7 +247,6 @@ describe("getAndProcessChangeFeed", () => {
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
       expect(result.right).toEqual(undefined);
     }
 
@@ -295,7 +289,6 @@ describe("getAndProcessChangeFeed", () => {
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
       expect(result.right).toEqual(undefined);
     }
 
@@ -335,7 +328,6 @@ describe("upsertItem", () => {
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
-      expect(result._tag).toBe("Right");
       expect(result.right).toEqual(undefined);
     }
   });
