@@ -28,7 +28,8 @@
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
     "@pagopa/winston-ts": "^2.2.0",
-    "fp-ts": "^2.16.1"
+    "fp-ts": "^2.16.1",
+    "mongodb": "^6.3.0"
   },
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
