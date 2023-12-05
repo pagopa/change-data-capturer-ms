@@ -1,12 +1,13 @@
-export interface ContinuationTokenItem {
-  readonly id: string;
-  readonly lease: string;
-}
 import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
+
+export interface ContinuationTokenItem {
+  readonly id: string;
+  readonly lease: string;
+}
 
 export const cosmosConnect = (
   endpoint: string,
