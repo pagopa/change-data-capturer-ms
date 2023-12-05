@@ -1,4 +1,4 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import { CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -18,31 +18,15 @@ import {
 import { CDCService, DatabaseConfig, DatabaseService } from "./service";
 
 export const cosmosDBService: DatabaseService = {
-  connect: <T>(config: DatabaseConfig): Either<Error, T> =>
-    pipe(
-      cosmosConnect(config.connection, config.connection),
-      E.map((client) => client as T),
-      E.mapLeft((error) => error as Error)
-    ),
-
-  getDatabase: <T, K>(client: T, name: string): Either<Error, K> =>
-    pipe(
-      getDatabase(client as CosmosClient, name),
-      E.map((database) => database as K),
-      E.mapLeft((error) => error as Error)
-    ),
-
-  getResource: <T, K>(database: T, resourceName: string): Either<Error, K> =>
-    pipe(
-      getContainer(database as Database, resourceName),
-      E.map((container) => container as K),
-      E.mapLeft((error) => error as Error)
-    ),
+  connect: (config: DatabaseConfig): Either<Error, CosmosClient> =>
+    pipe(cosmosConnect(config.connection, config.connection)),
+  getDatabase,
+  getResource: getContainer,
 };
 
 export const cosmosCDCService: CDCService = {
-  processChangeFeed: <T>(
-    client: T,
+  processChangeFeed: (
+    client: CosmosClient,
     database: string,
     resource: string,
     leaseResource?: string,
@@ -50,20 +34,12 @@ export const cosmosCDCService: CDCService = {
   ): TaskEither<Error, void> =>
     pipe(
       E.Do,
-      E.bind("database", () =>
-        cosmosDBService.getDatabase<CosmosClient, Database>(
-          client as CosmosClient,
-          database
-        )
-      ),
+      E.bind("database", () => cosmosDBService.getDatabase(client, database)),
       E.bind("container", ({ database }) =>
-        cosmosDBService.getResource<Database, Container>(database, resource)
+        cosmosDBService.getResource(database, resource)
       ),
       E.bind("leaseContainer", ({ database }) =>
-        cosmosDBService.getResource<Database, Container>(
-          database,
-          leaseResource
-        )
+        cosmosDBService.getResource(database, leaseResource)
       ),
       TE.fromEither,
       TE.bind("continuationToken", ({ leaseContainer }) =>
@@ -84,7 +60,6 @@ export const cosmosCDCService: CDCService = {
           )
         )
       ),
-      TE.map(() => void 0),
-      TE.mapLeft((error) => error as Error)
+      TE.map(() => void 0)
     ),
 };
