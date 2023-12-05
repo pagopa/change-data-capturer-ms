@@ -5,6 +5,7 @@ import {
   ChangeFeedStartFrom,
   Container,
   CosmosClient,
+  Database,
   StatusCodes,
 } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
@@ -13,6 +14,8 @@ import { getChangeFeedIteratorOptions, processChangeFeed } from "../cosmos";
 import {
   ContinuationTokenItem,
   cosmosConnect,
+  getContainer,
+  getDatabase,
   getItemById,
   upsertItem,
 } from "../utils";
@@ -68,6 +71,90 @@ describe("cosmosConnect", () => {
     expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(
       E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`))
+    );
+  });
+});
+
+const mockDatabase: Database = {} as unknown as Database;
+
+describe("getDatabase", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+  });
+
+  it("should get the database successfully", async () => {
+    const mockClient = {
+      database: jest.fn().mockReturnValueOnce(mockDatabase),
+    } as unknown as CosmosClient;
+
+    const databaseName = "test-database";
+
+    const result = getDatabase(mockClient, databaseName);
+    expect(mockClient.database).toHaveBeenCalledWith(databaseName);
+    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(mockDatabase));
+  });
+
+  it("should handle error when getting the database", async () => {
+    const mockClient = {
+      database: jest.fn().mockImplementationOnce(() => {
+        throw error;
+      }),
+    } as unknown as CosmosClient;
+
+    const databaseName = "invalid-database";
+
+    const result = getDatabase(mockClient, databaseName);
+    expect(mockClient.database).toHaveBeenCalledWith(databaseName);
+    expect(E.isLeft(result)).toBeTruthy();
+    expect(result).toEqual(
+      E.left(
+        new Error(
+          `Impossible to get database ${databaseName}: ${String(error)}`
+        )
+      )
+    );
+  });
+});
+
+describe("getContainer", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+  });
+
+  it("should get the container successfully", async () => {
+    const mockDatabase = {
+      container: jest.fn().mockReturnValueOnce(mockContainer),
+    } as unknown as Database;
+
+    const containerName = "test-container";
+
+    const result = getContainer(mockDatabase, containerName);
+    expect(mockDatabase.container).toHaveBeenCalledWith(containerName);
+    expect(E.isRight(result)).toBeTruthy();
+    expect(result).toEqual(E.right(mockContainer));
+  });
+
+  it("should handle error when getting the container", async () => {
+    const mockDatabase = {
+      container: jest.fn().mockImplementationOnce(() => {
+        throw error;
+      }),
+    } as unknown as Database;
+
+    const containerName = "invalid-container";
+
+    const result = getContainer(mockDatabase, containerName);
+    expect(mockDatabase.container).toHaveBeenCalledWith(containerName);
+    expect(E.isLeft(result)).toBeTruthy();
+    expect(result).toEqual(
+      E.left(
+        new Error(
+          `Impossible to get container ${containerName}: ${String(error)}`
+        )
+      )
     );
   });
 });

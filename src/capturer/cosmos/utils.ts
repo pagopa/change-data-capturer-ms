@@ -29,7 +29,7 @@ export const getDatabase = (
       () => client.database(databaseName),
       (reason) =>
         new Error(
-          `Impossible to get database ${databaseName}: " ${String(reason)}`
+          `Impossible to get database ${databaseName}: ${String(reason)}`
         )
     )
   );
@@ -43,7 +43,7 @@ export const getContainer = (
       () => database.container(containerName),
       (reason) =>
         new Error(
-          `Impossible to get container ${containerName}: " ${String(reason)}`
+          `Impossible to get container ${containerName}: ${String(reason)}`
         )
     )
   );

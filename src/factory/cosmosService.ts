@@ -8,13 +8,13 @@ import { pipe } from "fp-ts/lib/function";
 import {
   getChangeFeedIteratorOptions,
   processChangeFeed,
-} from "../cosmos/cosmos";
+} from "../capturer/cosmos/cosmos";
 import {
   cosmosConnect,
   getContainer,
   getDatabase,
   getItemById,
-} from "../cosmos/utils";
+} from "../capturer/cosmos/utils";
 import { CDCService, DatabaseConfig, DatabaseService } from "./service";
 
 export const cosmosDBService: DatabaseService = {
