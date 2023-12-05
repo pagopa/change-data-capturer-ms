@@ -34,18 +34,7 @@ export const getItemById = (
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>
   pipe(
     TE.tryCatch(
-      () =>
-        container.items
-          .query({
-            query: `SELECT * from c WHERE c.id = @id`,
-            parameters: [
-              {
-                name: "@id",
-                value: id,
-              },
-            ],
-          })
-          .fetchAll(),
+      async () => await container.item(id, id).read(),
       (reason) =>
         new Error(
           `Impossible to get item ${id} from container ${
@@ -53,5 +42,5 @@ export const getItemById = (
           }: ${String(reason)}`
         )
     ),
-    TE.map((resp) => O.fromNullable(resp.resources[0]))
+    TE.map((resp) => O.fromNullable(resp.resource as ContinuationTokenItem))
   );

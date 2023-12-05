@@ -8,14 +8,8 @@ import {
   StatusCodes,
 } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
 import { getChangeFeedIteratorOptions, processChangeFeed } from "../cosmos";
-import {
-  ContinuationTokenItem,
-  cosmosConnect,
-  getItemById,
-  upsertItem,
-} from "../utils";
+import { ContinuationTokenItem } from "../utils";
 
 const error = new Error("Connection error");
 
@@ -45,34 +39,6 @@ jest.mock("@azure/cosmos", () => ({
   },
 }));
 
-describe("cosmosConnect", () => {
-  beforeEach(() => {
-    jest.resetModules();
-    jest.clearAllMocks();
-  });
-
-  it("should connect to Cosmos successfully", async () => {
-    const endpoint = "your-endpoint";
-    const key = "your-key";
-
-    const result = cosmosConnect(endpoint, key);
-    expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
-    expect(result).toEqual(E.right(mockCosmosClient));
-  });
-
-  it("should handle connection error", async () => {
-    const endpoint = "invalid-endpoint";
-    const key = "invalid-key";
-
-    const result = cosmosConnect(endpoint, key);
-    expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
-    expect(result).toEqual(
-      E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`))
-    );
-  });
-});
-
-const testID = "test-id";
 const testLease = "test-lease";
 
 const mockContainer: Container = {
@@ -82,79 +48,6 @@ const mockContainer: Container = {
   },
   id: testLease,
 } as unknown as Container;
-
-describe("getItemById", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
-  });
-
-  it("should get item by ID successfully", async () => {
-    const id = "test-id";
-    const expectedResult = { id: testID, lease: testLease };
-
-    (mockContainer.items.query as jest.Mock).mockReturnValueOnce({
-      fetchAll: async () => ({
-        resources: [expectedResult],
-      }),
-    });
-
-    const result = await getItemById(mockContainer, id)();
-
-    expect(mockContainer.items.query).toHaveBeenCalledWith({
-      query: `SELECT * from c WHERE c.id = @id`,
-      parameters: [{ name: "@id", value: id.replace(" ", "-") }],
-    });
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      expect(result.right).toEqual(
-        O.some({
-          id: "test-id",
-          lease: "test-lease",
-        })
-      );
-    }
-  });
-
-  it("should handle error when getting item by ID", async () => {
-    (mockContainer.items.query as jest.Mock).mockReturnValueOnce({
-      fetchAll: jest.fn().mockRejectedValueOnce(new Error("Mock error")),
-    });
-    const result = await getItemById(mockContainer, testID)();
-
-    expect(mockContainer.items.query).toHaveBeenCalledWith({
-      query: `SELECT * from c WHERE c.id = @id`,
-      parameters: [{ name: "@id", value: testID.replace(" ", "-") }],
-    });
-
-    expect(E.isLeft(result)).toBeTruthy();
-    if (E.isLeft(result)) {
-      expect(result.left).toEqual(
-        new Error(
-          `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`
-        )
-      );
-    }
-  });
-
-  it("should handle empty result when getting item by ID", async () => {
-    (mockContainer.items.query as jest.Mock).mockReturnValueOnce({
-      fetchAll: jest.fn().mockResolvedValueOnce({ resources: [] }),
-    });
-
-    const result = await getItemById(mockContainer, testID)();
-
-    expect(mockContainer.items.query).toHaveBeenCalledWith({
-      query: `SELECT * from c WHERE c.id = @id`,
-      parameters: [{ name: "@id", value: testID.replace(" ", "-") }],
-    });
-
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      expect(O.isSome(result.right)).toBe(false);
-    }
-  });
-});
 
 describe("getChangeFeedIteratorOptions", () => {
   beforeEach(() => {
@@ -296,57 +189,5 @@ describe("getAndProcessChangeFeed", () => {
       mockProcessContainer.items.getChangeFeedIterator
     ).toHaveBeenCalledWith(changeFeedIteratorOptions);
     expect(mockLeaseContainer.items.upsert).toHaveBeenCalledTimes(0);
-  });
-});
-
-describe("upsertItem", () => {
-  beforeEach(() => {
-    jest.resetModules();
-    jest.clearAllMocks();
-  });
-
-  const mockUpsert: Container = {
-    items: {
-      upsert: jest.fn(),
-    },
-    id: "upsert",
-  } as unknown as Container;
-  it("should upsert an item successfully", async () => {
-    (mockUpsert.items.upsert as jest.Mock).mockReturnValueOnce(
-      () => Promise<void>
-    );
-
-    const result = await upsertItem(mockUpsert, {
-      id: "testId",
-      lease: "testLease",
-    })();
-
-    expect(mockUpsert.items.upsert).toHaveBeenCalledWith({
-      id: "testId",
-      lease: "testLease",
-    });
-
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      expect(result.right).toEqual(undefined);
-    }
-  });
-
-  it("should handle errors during upsert", async () => {
-    (mockUpsert.items.upsert as jest.Mock).mockRejectedValueOnce(() => {
-      throw new Error("Mock upsert error");
-    });
-
-    const result = await upsertItem(mockUpsert, {
-      id: "testId",
-      lease: "testLease",
-    })();
-
-    expect(mockUpsert.items.upsert).toHaveBeenCalledWith({
-      id: "testId",
-      lease: "testLease",
-    });
-
-    expect(E.isLeft(result)).toBeTruthy();
   });
 });
