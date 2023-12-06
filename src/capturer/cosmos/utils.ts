@@ -50,13 +50,6 @@ export const getItemById = (
         )
     ),
     TE.map((resp) =>
-      pipe(
-        resp.resource,
-        ContinuationTokenItem.decode,
-        E.fold(
-          () => O.none,
-          (v) => O.some(v)
-        )
-      )
+      pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither)
     )
   );
