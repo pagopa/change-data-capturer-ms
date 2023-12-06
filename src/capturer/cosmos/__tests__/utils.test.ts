@@ -82,7 +82,9 @@ describe("getItemById", () => {
     const expectedResult = { id: testID, lease: testLease };
 
     (mockContainer.item as jest.Mock).mockReturnValueOnce({
-      read: jest.fn().mockReturnValueOnce(Promise.resolve({ resource: expectedResult })),
+      read: jest
+        .fn()
+        .mockReturnValueOnce(Promise.resolve({ resource: expectedResult })),
     });
 
     const result = await getItemById(mockContainer, id)();
