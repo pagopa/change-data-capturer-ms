@@ -12,7 +12,8 @@
     "start-ts": "ts-node -r dotenv/config src/index.ts",
     "start-test": "ts-node -r dotenv/config src/utils/test.ts",
     "start": "node -r dotenv/config dist/index.js",
-    "build": "tsc --outDir dist"
+    "build": "tsc --outDir dist",
+    "code-review": "yarn lint && yarn test"
   },
   "dependencies": {
     "@pagopa/winston-ts": "^2.2.0",
