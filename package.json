@@ -13,6 +13,7 @@
     "start-test": "ts-node -r dotenv/config src/utils/test.ts",
     "start": "node -r dotenv/config dist/index.js",
     "build": "tsc --outDir dist",
+    "test": "jest --coverage ./src",
     "code-review": "yarn lint && yarn test"
   },
   "dependencies": {
