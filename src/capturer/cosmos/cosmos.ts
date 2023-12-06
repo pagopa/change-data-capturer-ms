@@ -37,6 +37,9 @@ export const processChangeFeed = (
       pipe(
         result.statusCode === StatusCodes.NotModified,
         B.fold(
+          // If the status code is NotModified, process the document by
+          // sending it to the queue (or any other processing logic).
+          // TODO implement a generic logic to process the document
           () =>
             void upsertItem<ContinuationTokenItem>(leaseContainer, {
               id: changeFeedContainer.id.replace(" ", "-"),
