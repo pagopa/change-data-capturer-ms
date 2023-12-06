@@ -7,7 +7,7 @@ import {
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as B from "fp-ts/boolean";
-import { pipe } from "fp-ts/lib/function";
+import { constVoid, pipe } from "fp-ts/lib/function";
 import { ContinuationTokenItem, upsertItem } from "./utils";
 
 export const getChangeFeedIteratorOptions = (
@@ -37,12 +37,15 @@ export const processChangeFeed = (
       pipe(
         result.statusCode === StatusCodes.NotModified,
         B.fold(
+          // If the status code is NotModified, process the document by
+          // sending it to the queue (or any other processing logic).
+          // TODO implement a generic logic to process the document
           () =>
             void upsertItem<ContinuationTokenItem>(leaseContainer, {
               id: changeFeedContainer.id.replace(" ", "-"),
               lease: result.continuationToken,
             } as ContinuationTokenItem)(),
-          () => TE.right(void 0)
+          () => TE.right(constVoid)
         )
       );
     }
