@@ -1,7 +1,4 @@
-import {
-  Container,
-  CosmosClient
-} from "@azure/cosmos";
+import { Container, CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -30,8 +27,10 @@ export const upsertItem = <T>(
   container: Container,
   item: T
 ): TE.TaskEither<Error, void> =>
-  pipe(TE.tryCatch(async () => await container.items.upsert(item), E.toError),
-    TE.map(constVoid));
+  pipe(
+    TE.tryCatch(() => container.items.upsert(item), E.toError),
+    TE.map(constVoid)
+  );
 
 export const getItemById = (
   container: Container,
@@ -39,16 +38,15 @@ export const getItemById = (
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>
   pipe(
     TE.tryCatch(
-      async () => await container.item(id, id).read(),
+      () => container.item(id, id).read(),
       (reason) =>
-        {console.log(reason); 
-          return new Error(
+        new Error(
           `Impossible to get item ${id} from container ${
             container.id
           }: ${String(reason)}`
-        )}
+        )
     ),
     TE.map((resp) =>
-        pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither)
-    ),
+      pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither)
+    )
   );

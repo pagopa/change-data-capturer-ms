@@ -82,7 +82,7 @@ describe("getItemById", () => {
     const expectedResult = { id: testID, lease: testLease };
 
     (mockContainer.item as jest.Mock).mockReturnValueOnce({
-      read: jest.fn().mockReturnValueOnce({ resource: expectedResult }),
+      read: jest.fn().mockReturnValueOnce(Promise.resolve({ resource: expectedResult })),
     });
 
     const result = await getItemById(mockContainer, id)();
@@ -147,7 +147,7 @@ describe("upsertItem", () => {
   } as unknown as Container;
   it("should upsert an item successfully", async () => {
     (mockUpsert.items.upsert as jest.Mock).mockReturnValueOnce(
-      () => Promise<void>
+      Promise.resolve(void 0)
     );
 
     const result = await upsertItem(mockUpsert, {
