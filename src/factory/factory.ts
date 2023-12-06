@@ -13,15 +13,17 @@ export const createCosmosDBService = (
   cdcService: CDCService
 ): Service => ({ ...databaseService, ...cdcService });
 
+const notSupportedError = "Service still not supported";
+
 export const createDatabaseService = (type: ServiceType): Service => {
   switch (type) {
     case ServiceType.Cosmos:
       return { ...cosmosDBService, ...cosmosCDCService };
     case ServiceType.MongoDB:
-      throw new Error("Service still not supported");
+      throw new Error(notSupportedError);
     case ServiceType.PostgreSQL:
-      throw new Error("Service still not supported");
+      throw new Error(notSupportedError);
     default:
-      throw new Error("Tipo di servizio non supportato");
+      throw new Error(notSupportedError);
   }
 };

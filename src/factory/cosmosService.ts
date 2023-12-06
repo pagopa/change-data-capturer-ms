@@ -1,4 +1,4 @@
-import { Container, CosmosClient } from "@azure/cosmos";
+import { CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -22,14 +22,14 @@ import {
   DatabaseService,
 } from "./service";
 
-export const cosmosDBService: DatabaseService = {
+export const cosmosDBService = {
   getDatabase,
   getResource: getContainer,
   connect: (config: DatabaseConfig): Either<Error, DBClient> =>
     cosmosConnect(config.connection, config.connection),
-};
+} satisfies DatabaseService;
 
-export const cosmosCDCService: CDCService = {
+export const cosmosCDCService = {
   processChangeFeed: (
     client: CosmosClient,
     database: string,
@@ -41,16 +41,10 @@ export const cosmosCDCService: CDCService = {
       E.Do,
       E.bind("database", () => cosmosDBService.getDatabase(client, database)),
       E.bind("container", ({ database }) =>
-        pipe(
-          cosmosDBService.getResource(database, resource),
-          E.map((c) => c as Container)
-        )
+        pipe(cosmosDBService.getResource(database, resource))
       ),
       E.bind("leaseContainer", ({ database }) =>
-        pipe(
-          cosmosDBService.getResource(database, leaseResource),
-          E.map((c) => c as Container)
-        )
+        pipe(cosmosDBService.getResource(database, leaseResource))
       ),
       TE.fromEither,
       TE.bind("continuationToken", ({ leaseContainer }) =>
@@ -58,9 +52,7 @@ export const cosmosCDCService: CDCService = {
       ),
       TE.chain(({ continuationToken, container, leaseContainer }) =>
         pipe(
-          getChangeFeedIteratorOptions(
-            O.getOrElse(() => null)(continuationToken)
-          ),
+          getChangeFeedIteratorOptions(O.toUndefined(continuationToken).lease),
           TE.fromEither,
           TE.chain((changeFeedIteratorOptions) =>
             processChangeFeed(
@@ -71,7 +63,6 @@ export const cosmosCDCService: CDCService = {
           )
         )
       ),
-      TE.map(() => void 0),
-      TE.mapLeft((error) => error as Error)
+      TE.map(() => void 0)
     ),
-};
+} satisfies CDCService;
