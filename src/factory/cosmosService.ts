@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { Either } from "fp-ts/lib/Either";
 import { TaskEither } from "fp-ts/lib/TaskEither";
-import { pipe } from "fp-ts/lib/function";
+import { constVoid, pipe } from "fp-ts/lib/function";
 import {
   getChangeFeedIteratorOptions,
   processChangeFeed,
@@ -52,7 +52,13 @@ export const cosmosCDCService = {
       ),
       TE.chain(({ continuationToken, container, leaseContainer }) =>
         pipe(
-          getChangeFeedIteratorOptions(O.toUndefined(continuationToken).lease),
+          getChangeFeedIteratorOptions(
+            pipe(
+              continuationToken,
+              O.map((token) => token.lease),
+              O.getOrElse(() => undefined)
+            )
+          ),
           TE.fromEither,
           TE.chain((changeFeedIteratorOptions) =>
             processChangeFeed(
@@ -63,6 +69,6 @@ export const cosmosCDCService = {
           )
         )
       ),
-      TE.map(() => void 0)
+      TE.map(constVoid)
     ),
 } satisfies CDCService;
