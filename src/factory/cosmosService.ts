@@ -56,7 +56,7 @@ export const cosmosCDCService = {
             pipe(
               continuationToken,
               O.map((token) => token.lease),
-              O.getOrElse(() => undefined)
+              O.toUndefined
             )
           ),
           TE.fromEither,
