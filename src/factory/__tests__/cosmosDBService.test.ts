@@ -20,24 +20,24 @@ describe("cosmosDBService", () => {
     jest.clearAllMocks();
   });
 
-  it("should connect to Cosmos successfully", () => {
+  it("should connect to Cosmos successfully", async () => {
     (cosmosConnect as jest.Mock).mockImplementationOnce(() =>
       right(mockCosmosClient)
     );
-    const result = cosmosDBService.connect({
+    const result = await cosmosDBService.connect({
       connection: "valid-connection",
-    });
+    })();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockCosmosClient));
   });
 
-  it("should handle connection error", () => {
+  it("should handle connection error", async () => {
     (cosmosConnect as jest.Mock).mockImplementationOnce(() =>
       left(new Error("Connection error"))
     );
-    const result = cosmosDBService.connect({
+    const result = await cosmosDBService.connect({
       connection: "invalid-connection",
-    });
+    })();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Connection error")));
   });
