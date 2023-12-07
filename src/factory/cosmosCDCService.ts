@@ -39,13 +39,10 @@ export const cosmosCDCService = {
         ),
         TE.chain(({ continuationToken, container, leaseContainer }) =>
           pipe(
-            getChangeFeedIteratorOptions(
-              pipe(
-                continuationToken,
-                O.map((token) => token.lease),
-                O.toUndefined
-              )
-            ),
+            continuationToken,
+            O.map((token) => token.lease),
+            O.toUndefined,
+            getChangeFeedIteratorOptions,
             TE.fromEither,
             TE.chain((changeFeedIteratorOptions) =>
               processChangeFeed(
