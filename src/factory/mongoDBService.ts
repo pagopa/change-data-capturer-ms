@@ -1,9 +1,9 @@
 import * as TE from "fp-ts/TaskEither";
 import {
-    findDocumentByID,
-    getMongoCollection,
-    getMongoDb,
-    mongoConnect,
+  findDocumentByID,
+  getMongoCollection,
+  getMongoDb,
+  mongoConnect,
 } from "../capturer/mongo/utils";
 import { DBClient, DatabaseConfig, DatabaseService } from "./service";
 

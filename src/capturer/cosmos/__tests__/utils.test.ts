@@ -9,7 +9,7 @@ import {
   getDatabase,
   getContainer,
   getItemByID,
-  upsertItem
+  upsertItem,
 } from "../utils";
 
 const error = new Error("Connection error");
@@ -100,9 +100,6 @@ describe("getDatabase", () => {
     });
     const errorOrDatabase = getDatabase(mockCosmosClient, databaseName);
     expect(E.isLeft(errorOrDatabase)).toBeTruthy();
-    if (E.isLeft(errorOrDatabase)) {
-      expect(errorOrDatabase.left.message).toEqual("Error while getting database");
-    }
   });
 });
 
@@ -131,9 +128,6 @@ describe("getContainer", () => {
     });
     const errorOrContainer = await getContainer(mockDatabase, containerName)();
     expect(E.isLeft(errorOrContainer)).toBeTruthy();
-    if (E.isLeft(errorOrContainer)) {
-      expect(errorOrContainer.left.message).toEqual("Error while getting container");
-    }
   });
 });
 

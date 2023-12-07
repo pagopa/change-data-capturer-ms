@@ -4,13 +4,14 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { flow, pipe } from "fp-ts/lib/function";
 import {
-    Collection,
-    Db,
-    Document,
-    InsertOneResult,
-    MongoClient,
-    OptionalUnlessRequiredId,
-    WithId,
+  Collection,
+  Db,
+  Document,
+  InferIdType,
+  InsertOneResult,
+  MongoClient,
+  OptionalUnlessRequiredId,
+  WithId,
 } from "mongodb";
 
 export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
@@ -95,19 +96,26 @@ export const findLastDocument = <T>(
     TE.map(O.fromNullable)
   );
 
-export const findDocumentByID = <T, D extends WithId<T>>(
+export const findDocumentByID = <T>(
   collection: Collection<T>,
-  id: string
-): TE.TaskEither<Error, O.Option<T>> =>
+  id: InferIdType<T>
+): TE.TaskEither<Error, WithId<T>> =>
   pipe(
     TE.tryCatch(
-      () => collection.find<D>({ _id: id }).tryNext(),
+      () =>
+        collection
+          .find({
+            $where() {
+              // eslint-disable-next-line no-underscore-dangle
+              return this._id === id;
+            },
+          })
+          .tryNext(),
       (reason) =>
         new Error(
           `Unable to get the the document with ID ${id} from collection: " ${reason}`
         )
-    ),
-    TE.map(O.fromNullable)
+    )
   );
 
 export const insertDocument = <T>(
