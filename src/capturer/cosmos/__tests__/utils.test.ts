@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 /* eslint-disable no-underscore-dangle */
 import "@azure/cosmos";
 import { Container, CosmosClient } from "@azure/cosmos";
@@ -11,26 +12,8 @@ const mockCosmosClient: CosmosClient = {
   database: jest.fn(),
 } as unknown as CosmosClient;
 
-const mockContinuationToken = { _tag: "Continuation", value: "token" };
-const mockBeginningIterator = { _tag: "Beginning" };
-
 jest.mock("@azure/cosmos", () => ({
-  CosmosClient: jest
-    .fn()
-    .mockImplementationOnce(() => mockCosmosClient)
-    .mockImplementationOnce(() => {
-      throw error;
-    }),
-  Container: jest.fn().mockImplementationOnce(() => mockContainer),
-  ChangeFeedStartFrom: {
-    Continuation: jest
-      .fn()
-      .mockImplementationOnce((_) => mockContinuationToken),
-    Beginning: jest.fn().mockImplementationOnce(() => mockBeginningIterator),
-  },
-  StatusCodes: {
-    NotModified: 304,
-  },
+  CosmosClient: jest.fn(),
 }));
 
 describe("cosmosConnect", () => {
@@ -43,7 +26,10 @@ describe("cosmosConnect", () => {
     const endpoint = "your-endpoint";
     const key = "your-key";
 
+    (CosmosClient as jest.Mock).mockImplementationOnce(() => mockCosmosClient);
+
     const result = cosmosConnect(endpoint, key);
+
     expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(E.right(mockCosmosClient));
   });
@@ -52,7 +38,13 @@ describe("cosmosConnect", () => {
     const endpoint = "invalid-endpoint";
     const key = "invalid-key";
 
+    (CosmosClient as jest.Mock).mockImplementationOnce(() => {
+      {
+        throw error;
+      }
+    });
     const result = cosmosConnect(endpoint, key);
+
     expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(
       E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`))
@@ -63,12 +55,16 @@ describe("cosmosConnect", () => {
 const testID = "test-id";
 const testLease = "test-lease";
 
+const itemReadMock = jest.fn();
+
 const mockContainer: Container = {
   items: {
     upsert: jest.fn(),
   },
   id: testLease,
-  item: jest.fn(),
+  item: jest.fn().mockReturnValue({
+    read: itemReadMock,
+  }),
 } as unknown as Container;
 
 describe("getItemById", () => {
@@ -81,11 +77,9 @@ describe("getItemById", () => {
     const id = "test-id";
     const expectedResult = { id: testID, lease: testLease };
 
-    (mockContainer.item as jest.Mock).mockReturnValueOnce({
-      read: jest
-        .fn()
-        .mockReturnValueOnce(Promise.resolve({ resource: expectedResult })),
-    });
+    itemReadMock.mockReturnValueOnce(
+      Promise.resolve({ resource: expectedResult })
+    );
 
     const result = await getItemByID(mockContainer, id)();
 
@@ -102,9 +96,7 @@ describe("getItemById", () => {
   });
 
   it("should handle error when getting item by ID", async () => {
-    (mockContainer.item as jest.Mock).mockReturnValueOnce({
-      read: jest.fn().mockRejectedValueOnce(new Error("Mock error")),
-    });
+    itemReadMock.mockRejectedValueOnce(new Error("Mock error"));
     const result = await getItemByID(mockContainer, testID)();
 
     expect(mockContainer.item).toHaveBeenCalledWith(testID, testID);
@@ -120,9 +112,7 @@ describe("getItemById", () => {
   });
 
   it("should handle empty result when getting item by ID", async () => {
-    (mockContainer.item as jest.Mock).mockReturnValueOnce({
-      read: jest.fn().mockResolvedValueOnce({ resource: null }),
-    });
+    itemReadMock.mockResolvedValueOnce({ resource: null });
 
     const result = await getItemByID(mockContainer, testID)();
 
@@ -141,16 +131,16 @@ describe("upsertItem", () => {
     jest.clearAllMocks();
   });
 
+  const itemsUpsertMock = jest.fn();
+
   const mockUpsert: Container = {
     items: {
-      upsert: jest.fn(),
+      upsert: itemsUpsertMock,
     },
     id: "upsert",
   } as unknown as Container;
   it("should upsert an item successfully", async () => {
-    (mockUpsert.items.upsert as jest.Mock).mockReturnValueOnce(
-      Promise.resolve(void 0)
-    );
+    itemsUpsertMock.mockResolvedValueOnce(void 0);
 
     const result = await upsertItem(mockUpsert, {
       id: "testId",
@@ -169,7 +159,7 @@ describe("upsertItem", () => {
   });
 
   it("should handle errors during upsert", async () => {
-    (mockUpsert.items.upsert as jest.Mock).mockRejectedValueOnce(() => {
+    itemsUpsertMock.mockRejectedValueOnce(() => {
       throw new Error("Mock upsert error");
     });
 

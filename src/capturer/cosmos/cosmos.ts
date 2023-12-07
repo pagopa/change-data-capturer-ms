@@ -13,16 +13,12 @@ import { ContinuationTokenItem, upsertItem } from "./utils";
 export const getChangeFeedIteratorOptions = (
   continuationToken?: string,
   maxItemCount?: number
-): E.Either<Error, ChangeFeedIteratorOptions> =>
-  E.tryCatch(
-    () => ({
-      maxItemCount: maxItemCount && maxItemCount > 0 ? maxItemCount : 1,
-      changeFeedStartFrom: continuationToken
-        ? ChangeFeedStartFrom.Continuation(continuationToken)
-        : ChangeFeedStartFrom.Beginning(),
-    }),
-    E.toError
-  );
+): ChangeFeedIteratorOptions => ({
+  maxItemCount: maxItemCount && maxItemCount > 0 ? maxItemCount : 1,
+  changeFeedStartFrom: continuationToken
+    ? ChangeFeedStartFrom.Continuation(continuationToken)
+    : ChangeFeedStartFrom.Beginning(),
+});
 
 export const processChangeFeed = (
   changeFeedContainer: Container,
