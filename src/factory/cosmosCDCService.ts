@@ -43,14 +43,12 @@ export const cosmosCDCService = {
             O.map((token) => token.lease),
             O.toUndefined,
             getChangeFeedIteratorOptions,
-            TE.fromEither,
-            TE.chain((changeFeedIteratorOptions) =>
+            (changeFeedIteratorOptions) =>
               processChangeFeed(
                 container,
                 changeFeedIteratorOptions,
                 leaseContainer
               )
-            )
           )
         ),
         TE.map(constVoid)

@@ -7,6 +7,7 @@ import {
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { left, right } from "fp-ts/lib/Either";
+import * as CosmosCapturer from "../../capturer/cosmos/cosmos";
 import {
   getChangeFeedIteratorOptions,
   processChangeFeed,
@@ -18,11 +19,13 @@ const mockCosmosClient: CosmosClient = {} as CosmosClient;
 const mockDatabase: Database = {} as Database;
 const mockContainer: Container = {} as Container;
 
-jest.mock("../../capturer/cosmos/cosmos", () => ({
-  ...jest.requireActual("../../capturer/cosmos/cosmos"),
-  getChangeFeedIteratorOptions: jest.fn(() => right({})),
-  processChangeFeed: jest.fn(() => TE.rightTask(() => null)),
-}));
+const getChangeFeedIteratorOptionsMock = jest.fn().mockReturnValue({});
+jest
+  .spyOn(CosmosCapturer, "getChangeFeedIteratorOptions")
+  .mockImplementation(getChangeFeedIteratorOptionsMock);
+jest
+  .spyOn(CosmosCapturer, "processChangeFeed")
+  .mockImplementation(() => TE.rightTask(() => null));
 
 const mockDBServiceClient = {
   getDatabase: jest.fn(),
@@ -45,12 +48,10 @@ describe("cosmosCDCService", () => {
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
       TE.right(O.some({ id: "value", lease: "test" }))
     );
-    (getChangeFeedIteratorOptions as jest.Mock).mockReturnValueOnce(
-      right({
-        maxItemCount: 1,
-        changeFeedStartFrom: ChangeFeedStartFrom.Continuation("test"),
-      })
-    );
+    getChangeFeedIteratorOptionsMock.mockReturnValueOnce({
+      maxItemCount: 1,
+      changeFeedStartFrom: ChangeFeedStartFrom.Continuation("test"),
+    });
     const result = await cosmosCDCService.processChangeFeed(
       mockCosmosClient,
       "test-database",
@@ -78,12 +79,10 @@ describe("cosmosCDCService", () => {
     mockDBServiceClient.getResource.mockReturnValue(right(mockDatabase));
     mockDBServiceClient.connect.mockReturnValueOnce(right(mockContainer));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(TE.right(O.none));
-    (getChangeFeedIteratorOptions as jest.Mock).mockReturnValueOnce(
-      right({
-        maxItemCount: 1,
-        changeFeedStartFrom: ChangeFeedStartFrom.Beginning(),
-      })
-    );
+    getChangeFeedIteratorOptionsMock.mockReturnValueOnce({
+      maxItemCount: 1,
+      changeFeedStartFrom: ChangeFeedStartFrom.Beginning(),
+    });
 
     const result = await cosmosCDCService.processChangeFeed(
       mockCosmosClient,
