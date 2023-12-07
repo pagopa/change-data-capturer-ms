@@ -1,4 +1,4 @@
-import { cosmosCDCService, cosmosDBService } from "./cosmosService";
+import { cosmosCDCService, cosmosDBService } from "./cosmosDBService";
 import { CDCService, DatabaseService } from "./service";
 
 export type Service = DatabaseService & CDCService;

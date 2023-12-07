@@ -60,7 +60,7 @@ export const upsertItem = <T>(
     TE.map(constVoid)
   );
 
-export const getItemById = (
+export const getItemByID = (
   container: Container,
   id: string
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>
