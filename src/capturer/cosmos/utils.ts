@@ -1,4 +1,4 @@
-import { Container, CosmosClient } from "@azure/cosmos";
+import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -23,6 +23,34 @@ export const cosmosConnect = (
     )
   );
 
+export const getDatabase = (
+  client: CosmosClient,
+  databaseName: string
+): E.Either<Error, Database> =>
+  pipe(
+    E.tryCatch(
+      () => client.database(databaseName),
+      (reason) =>
+        new Error(
+          `Impossible to get database ${databaseName}: ${String(reason)}`
+        )
+    )
+  );
+
+export const getContainer = (
+  database: Database,
+  containerName: string
+): E.Either<Error, Container> =>
+  pipe(
+    E.tryCatch(
+      () => database.container(containerName),
+      (reason) =>
+        new Error(
+          `Impossible to get container ${containerName}: ${String(reason)}`
+        )
+    )
+  );
+
 export const upsertItem = <T>(
   container: Container,
   item: T
@@ -32,7 +60,7 @@ export const upsertItem = <T>(
     TE.map(constVoid)
   );
 
-export const getItemById = (
+export const getItemByID = (
   container: Container,
   id: string
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>

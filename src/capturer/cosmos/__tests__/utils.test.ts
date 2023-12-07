@@ -4,7 +4,7 @@ import "@azure/cosmos";
 import { Container, CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
-import { cosmosConnect, getItemById, upsertItem } from "../utils";
+import { cosmosConnect, getItemByID, upsertItem } from "../utils";
 
 const error = new Error("Connection error");
 
@@ -81,7 +81,7 @@ describe("getItemById", () => {
       Promise.resolve({ resource: expectedResult })
     );
 
-    const result = await getItemById(mockContainer, id)();
+    const result = await getItemByID(mockContainer, id)();
 
     expect(mockContainer.item).toHaveBeenCalledWith(id, id);
     expect(E.isRight(result)).toBeTruthy();
@@ -97,7 +97,7 @@ describe("getItemById", () => {
 
   it("should handle error when getting item by ID", async () => {
     itemReadMock.mockRejectedValueOnce(new Error("Mock error"));
-    const result = await getItemById(mockContainer, testID)();
+    const result = await getItemByID(mockContainer, testID)();
 
     expect(mockContainer.item).toHaveBeenCalledWith(testID, testID);
 
@@ -114,7 +114,7 @@ describe("getItemById", () => {
   it("should handle empty result when getting item by ID", async () => {
     itemReadMock.mockResolvedValueOnce({ resource: null });
 
-    const result = await getItemById(mockContainer, testID)();
+    const result = await getItemByID(mockContainer, testID)();
 
     expect(mockContainer.item).toHaveBeenCalledWith(testID, testID);
 
