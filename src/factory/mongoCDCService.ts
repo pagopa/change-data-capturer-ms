@@ -40,10 +40,13 @@ export const mongoCDCService = {
         TE.chain(({ collection, leaseDocument }) =>
           pipe(
             leaseDocument,
-            O.map((token) => (token as unknown as ContinuationTokenItem).lease),
-            O.toUndefined,
-            (leaseToken) => watchChangeFeed(collection, leaseToken),
-            TE.fromEither
+            O.fold(
+              () => TE.fromEither(watchChangeFeed(collection)),
+              (token) =>
+                pipe(token as ContinuationTokenItem, (leaseToken) =>
+                  TE.fromEither(watchChangeFeed(collection, leaseToken.lease))
+                )
+            )
           )
         ),
         TE.map(constVoid)
@@ -52,7 +55,7 @@ export const mongoCDCService = {
 
 export const watchChangeFeed = (
   collection: Collection,
-  resumeToken: string
+  resumeToken?: string
 ): E.Either<Error, void> =>
   pipe(
     watchMongoCollection(collection, resumeToken),

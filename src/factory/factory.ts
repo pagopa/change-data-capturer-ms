@@ -6,7 +6,7 @@ import { CDCService, DatabaseService } from "./service";
 
 export type Service = DatabaseService & CDCService;
 
-enum ServiceType {
+export enum ServiceType {
   Cosmos,
   MongoDB,
   PostgreSQL,
@@ -16,7 +16,7 @@ export const createCosmosDBService = (
   cdcService: CDCService
 ): Service => ({ ...databaseService, ...cdcService });
 
-const notSupportedError = "Service still not supported";
+export const notSupportedError = "Service still not supported";
 
 export const createDatabaseService = (type: ServiceType): Service => {
   switch (type) {
