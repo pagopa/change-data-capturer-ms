@@ -1,22 +1,8 @@
 import { cosmosCDCService } from "./cosmosCDCService";
 import { cosmosDBService } from "./cosmosDBService";
-import { mongoCDCService } from "./mongoCDCService";
+import { Service, ServiceType, notSupportedError } from "./factory";
 import { mongoDBService } from "./mongoDBService";
-import { CDCService, DatabaseService } from "./service";
 
-export type Service = DatabaseService & CDCService;
-
-enum ServiceType {
-  Cosmos,
-  MongoDB,
-  PostgreSQL,
-}
-export const createCosmosDBService = (
-  databaseService: DatabaseService,
-  cdcService: CDCService
-): Service => ({ ...databaseService, ...cdcService });
-
-const notSupportedError = "Service still not supported";
 
 export const createDatabaseService = (type: ServiceType): Service => {
   switch (type) {

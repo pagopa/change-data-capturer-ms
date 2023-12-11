@@ -6,13 +6,13 @@ import { constVoid, pipe } from "fp-ts/lib/function";
 import { Collection, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../capturer/cosmos/utils";
 import {
-    setMongoListenerOnEventChange,
-    watchMongoCollection,
+  setMongoListenerOnEventChange,
+  watchMongoCollection,
 } from "../capturer/mongo/mongo";
 import { mongoDBService } from "./mongoDBService";
 import { CDCService } from "./service";
 
-export const cosmosCDCService = {
+export const mongoCDCService = {
   processChangeFeed:
     (
       client: MongoClient,
