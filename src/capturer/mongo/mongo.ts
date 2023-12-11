@@ -2,11 +2,11 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 import {
-    Binary,
-    ChangeStream,
-    ChangeStreamDocument,
-    Collection,
-    Document,
+  Binary,
+  ChangeStream,
+  ChangeStreamDocument,
+  Collection,
+  Document,
 } from "mongodb";
 
 export const watchMongoCollection = <T = Document>(
@@ -57,8 +57,8 @@ export const watchMongoCollection = <T = Document>(
 export const setMongoListenerOnEventChange = <T extends Document>(
   changeStream: ChangeStream<T, ChangeStreamDocument<T>>,
   listener: (change: ChangeStreamDocument<T>) => void
-): E.Either<Error, ChangeStream<T, ChangeStreamDocument<T>>> =>
+): E.Either<Error, void> =>
   E.tryCatch(
-    () => changeStream.on("change", listener),
+    () => void changeStream.on("change", listener),
     (reason) => new Error(`Impossible to set the listener: " ${reason}`)
   );

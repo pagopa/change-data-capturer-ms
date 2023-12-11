@@ -7,11 +7,9 @@ import {
   Collection,
   Db,
   Document,
-  InferIdType,
   InsertOneResult,
   MongoClient,
   OptionalUnlessRequiredId,
-  WithId,
 } from "mongodb";
 
 export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
@@ -96,26 +94,22 @@ export const findLastDocument = <T>(
     TE.map(O.fromNullable)
   );
 
-export const findDocumentByID = <T>(
-  collection: Collection<T>,
-  id: InferIdType<T>
-): TE.TaskEither<Error, WithId<T>> =>
+export const findDocumentByID = (
+  collection: Collection,
+  id: string
+): TE.TaskEither<Error, O.Option<Document>> =>
   pipe(
     TE.tryCatch(
-      () =>
-        collection
-          .find({
-            $where() {
-              // eslint-disable-next-line no-underscore-dangle
-              return this._id === id;
-            },
-          })
-          .tryNext(),
+      async () => {
+        const query = { id };
+        return collection.findOne(query);
+      },
       (reason) =>
         new Error(
           `Unable to get the the document with ID ${id} from collection: " ${reason}`
         )
-    )
+    ),
+    TE.map(O.fromNullable)
   );
 
 export const insertDocument = <T>(
