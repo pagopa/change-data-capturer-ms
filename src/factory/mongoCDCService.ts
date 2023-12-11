@@ -4,7 +4,7 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import { Collection, MongoClient } from "mongodb";
-import { ContinuationTokenItem } from "src/capturer/cosmos/utils";
+import { ContinuationTokenItem } from "../capturer/cosmos/utils";
 import {
     setMongoListenerOnEventChange,
     watchMongoCollection,
