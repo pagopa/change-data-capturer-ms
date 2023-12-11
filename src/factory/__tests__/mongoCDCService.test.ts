@@ -3,11 +3,11 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { right } from "fp-ts/lib/Either";
 import {
-    ChangeStream,
-    ChangeStreamDocument,
-    Collection,
-    Db,
-    MongoClient,
+  ChangeStream,
+  ChangeStreamDocument,
+  Collection,
+  Db,
+  MongoClient,
 } from "mongodb";
 import * as MongoCapturer from "../../capturer/mongo/mongo";
 import { watchMongoCollection } from "../../capturer/mongo/mongo";

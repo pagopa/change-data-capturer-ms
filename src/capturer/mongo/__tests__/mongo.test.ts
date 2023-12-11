@@ -1,9 +1,9 @@
 import * as E from "fp-ts/Either";
 import {
-    Binary,
-    ChangeStream,
-    ChangeStreamDocument,
-    Collection,
+  Binary,
+  ChangeStream,
+  ChangeStreamDocument,
+  Collection,
 } from "mongodb";
 import { setMongoListenerOnEventChange, watchMongoCollection } from "../mongo";
 

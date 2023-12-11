@@ -4,10 +4,10 @@ import { left, right } from "fp-ts/lib/Either";
 import { Collection, Db, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../../capturer/cosmos/utils";
 import {
-    findDocumentByID,
-    getMongoCollection,
-    getMongoDb,
-    mongoConnect,
+  findDocumentByID,
+  getMongoCollection,
+  getMongoDb,
+  mongoConnect,
 } from "../../capturer/mongo/utils";
 import { mongoDBService } from "../mongoDBService";
 
