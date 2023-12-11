@@ -1,5 +1,6 @@
 import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 import { left, right } from "fp-ts/lib/Either";
 import {
   cosmosConnect,
@@ -66,23 +67,26 @@ describe("cosmosDBService", () => {
     expect(result).toEqual(left(new Error("Database error")));
   });
 
-  it("should get resource successfully", () => {
+  it("should get resource successfully", async () => {
     (getContainer as jest.Mock).mockImplementationOnce(() =>
-      right(mockContainer)
+      TE.rightTask(() => Promise.resolve(mockContainer))
     );
-    const result = cosmosDBService.getResource(mockDatabase, "test-container");
+    const result = await cosmosDBService.getResource(
+      mockDatabase,
+      "test-container"
+    )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockContainer));
   });
 
-  it("should handle error when getting resource", () => {
+  it("should handle error when getting resource", async () => {
     (getContainer as jest.Mock).mockImplementationOnce(() =>
-      left(new Error("Container error"))
+      TE.leftTask(() => Promise.resolve(new Error("Container error")))
     );
-    const result = cosmosDBService.getResource(
+    const result = await cosmosDBService.getResource(
       mockDatabase,
       "invalid-container"
-    );
+    )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Container error")));
   });

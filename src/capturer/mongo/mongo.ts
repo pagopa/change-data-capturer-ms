@@ -49,7 +49,7 @@ export const watchMongoCollection = <T = Document>(
           ),
         (reason) =>
           new Error(
-            `Impossible to watch the ${collection.namespace} collection: " ${reason}`
+            `Impossible to watch the ${collection.collectionName} collection: " ${reason}`
           )
       )
   );

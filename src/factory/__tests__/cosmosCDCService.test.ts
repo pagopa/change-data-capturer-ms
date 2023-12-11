@@ -43,7 +43,7 @@ describe("cosmosCDCService", () => {
     mockDBServiceClient.getDatabase.mockReturnValueOnce(
       right(mockCosmosClient)
     );
-    mockDBServiceClient.getResource.mockReturnValue(right(mockDatabase));
+    mockDBServiceClient.getResource.mockReturnValue(TE.right(mockDatabase));
     mockDBServiceClient.connect.mockReturnValueOnce(right(mockContainer));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
       TE.right(O.some({ id: "value", lease: "test" }))
@@ -76,7 +76,7 @@ describe("cosmosCDCService", () => {
     mockDBServiceClient.getDatabase.mockReturnValueOnce(
       right(mockCosmosClient)
     );
-    mockDBServiceClient.getResource.mockReturnValue(right(mockDatabase));
+    mockDBServiceClient.getResource.mockReturnValue(TE.right(mockDatabase));
     mockDBServiceClient.connect.mockReturnValueOnce(right(mockContainer));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(TE.right(O.none));
     getChangeFeedIteratorOptionsMock.mockReturnValueOnce({
@@ -109,7 +109,7 @@ describe("cosmosCDCService", () => {
       right(mockCosmosClient)
     );
     mockDBServiceClient.getResource.mockReturnValueOnce(
-      left(new Error("Impossible to get the container"))
+      TE.left(new Error("Impossible to get the container"))
     );
 
     const result = await cosmosCDCService.processChangeFeed(

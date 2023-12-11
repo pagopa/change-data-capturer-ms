@@ -6,8 +6,8 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import {
   cosmosConnect,
-  getDatabase,
   getContainer,
+  getDatabase,
   getItemByID,
   upsertItem,
 } from "../utils";
@@ -84,6 +84,7 @@ describe("getDatabase", () => {
   const mockCosmosClient = {
     database: databaseMock,
   } as unknown as CosmosClient;
+
   it("should get database instance by providing db name", () => {
     const errorOrDatabase = getDatabase(mockCosmosClient, databaseName);
     expect(E.isRight(errorOrDatabase)).toBeTruthy();

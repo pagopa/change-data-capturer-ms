@@ -15,8 +15,7 @@ import {
 export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
   TE.tryCatch(
     () => MongoClient.connect(uri),
-    (reason) =>
-      new Error(`Impossible to connect to MongoDB: " ${String(reason)}`)
+    (reason) => new Error(`Impossible to connect to MongoDB: ${String(reason)}`)
   );
 
 export const getMongoDb = (
@@ -25,7 +24,7 @@ export const getMongoDb = (
 ): E.Either<Error, Db> =>
   E.tryCatch(
     () => client.db(dbName),
-    (reason) => new Error(`Impossible to Get the ${dbName} db: " ${reason}`)
+    (reason) => new Error(`Impossible to Get the ${dbName} db: ${reason}`)
   );
 
 export const getMongoCollection = <T = Document>(
@@ -37,12 +36,12 @@ export const getMongoCollection = <T = Document>(
       () => db.listCollections({ name: collectionName }).toArray(),
       (reason) =>
         new Error(
-          `Impossible to Get the ${collectionName} collection: " ${reason}`
+          `Impossible to Get the ${collectionName} collection: ${reason}`
         )
     ),
     TE.map(AR.head),
     TE.chain(
-      TE.fromOption(() => Error(`collection ${collectionName} does not exists`))
+      TE.fromOption(() => Error(`Collection ${collectionName} does not exists`))
     ),
     TE.map(() => db.collection(collectionName))
   );
@@ -57,7 +56,7 @@ export const getOrCreateMongoCollection = <T extends Document>(
       // eslint-disable-next-line sonarjs/no-identical-functions
       (reason) =>
         new Error(
-          `Impossible to Get the ${collectionName} collection: " ${reason}`
+          `Impossible to Get the ${collectionName} collection: ${reason}`
         )
     ),
     TE.map(AR.head),
@@ -77,22 +76,22 @@ export const disconnectMongo = (
   TE.tryCatch(
     () => client.close(),
     (reason) =>
-      new Error(`Impossible to disconnect the mongo client: " ${reason}`)
+      new Error(`Impossible to disconnect the mongo client: ${reason}`)
   );
 
-export const findLastDocument = <T>(
-  collection: Collection<T>
-): TE.TaskEither<Error, O.Option<T>> =>
-  pipe(
-    TE.tryCatch(
-      () => collection.find<T>({}).sort({ _id: -1 }).limit(1).tryNext(),
-      (reason) =>
-        new Error(
-          `Unable to get the last inserted document from collection: " ${reason}`
-        )
-    ),
-    TE.map(O.fromNullable)
-  );
+// export const findLastDocument = <T>(
+//   collection: Collection<T>
+// ): TE.TaskEither<Error, O.Option<T>> =>
+//   pipe(
+//     TE.tryCatch(
+//       () => collection.find<T>({}).sort({ _id: -1 }).limit(1).tryNext(),
+//       (reason) =>
+//         new Error(
+//           `Unable to get the last inserted document from collection: " ${reason}`
+//         )
+//     ),
+//     TE.map(O.fromNullable)
+//   );
 
 export const findDocumentByID = (
   collection: Collection,
@@ -106,7 +105,7 @@ export const findDocumentByID = (
       },
       (reason) =>
         new Error(
-          `Unable to get the the document with ID ${id} from collection: " ${reason}`
+          `Unable to get the the document with ID ${id} from collection: ${reason}`
         )
     ),
     TE.map(O.fromNullable)
@@ -118,5 +117,5 @@ export const insertDocument = <T>(
 ): TE.TaskEither<Error, InsertOneResult<T>> =>
   TE.tryCatch(
     () => collection.insertOne(doc),
-    (reason) => new Error(String(reason))
+    (reason) => new Error(`Unable to insert the document: ${reason}`)
   );
