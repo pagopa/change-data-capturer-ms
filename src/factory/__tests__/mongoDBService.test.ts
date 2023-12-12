@@ -66,7 +66,7 @@ describe("mongoDBService", () => {
 
   it("should get resource successfully", async () => {
     getMongoCollectionSpy.mockImplementationOnce(() =>
-      TE.rightTask(() => Promise.resolve(mockCollection))
+      TE.right(mockCollection)
     );
     const result = await mongoDBService.getResource(
       mockDatabase,
@@ -78,7 +78,7 @@ describe("mongoDBService", () => {
 
   it("should handle error when getting resource", async () => {
     getMongoCollectionSpy.mockImplementationOnce(() =>
-      TE.leftTask(() => Promise.resolve(new Error("Container error")))
+      TE.left(new Error("Container error"))
     );
     const result = await mongoDBService.getResource(
       mockDatabase,
@@ -90,7 +90,7 @@ describe("mongoDBService", () => {
 
   it("should get item by id succesfully", async () => {
     findDocumentByIDSpy.mockImplementationOnce(() =>
-      TE.rightTask(() => Promise.resolve(O.fromNullable(mockItem)))
+      TE.right(O.fromNullable(mockItem))
     );
     const result = await mongoDBService.getItemByID(mockCollection, "testID")();
     expect(E.isRight(result)).toBeTruthy();
@@ -99,7 +99,7 @@ describe("mongoDBService", () => {
 
   it("should handle error when getting item by id", async () => {
     findDocumentByIDSpy.mockImplementationOnce(() =>
-      TE.leftTask(() => Promise.resolve(new Error("Item error")))
+      TE.left(new Error("Item error"))
     );
     const result = await mongoDBService.getItemByID(mockCollection, "testID")();
     expect(E.isLeft(result)).toBeTruthy();

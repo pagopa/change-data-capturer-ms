@@ -66,9 +66,7 @@ describe("cosmosDBService", () => {
   });
 
   it("should get resource successfully", async () => {
-    getContainerSpy.mockImplementationOnce(() =>
-      TE.rightTask(() => Promise.resolve(mockContainer))
-    );
+    getContainerSpy.mockImplementationOnce(() => TE.right(mockContainer));
     const result = await cosmosDBService.getResource(
       mockDatabase,
       "test-container"
@@ -79,7 +77,7 @@ describe("cosmosDBService", () => {
 
   it("should handle error when getting resource", async () => {
     getContainerSpy.mockImplementationOnce(() =>
-      TE.leftTask(() => Promise.resolve(new Error("Container error")))
+      TE.left(new Error("Container error"))
     );
     const result = await cosmosDBService.getResource(
       mockDatabase,
@@ -91,7 +89,7 @@ describe("cosmosDBService", () => {
 
   it("should get item by id succesfully", async () => {
     getItemByIDSpy.mockImplementationOnce(() =>
-      TE.rightTask(() => Promise.resolve(O.fromNullable(mockItem)))
+      TE.right(O.fromNullable(mockItem))
     );
     const result = await cosmosDBService.getItemByID(mockContainer, "testID")();
     expect(E.isRight(result)).toBeTruthy();
@@ -100,7 +98,7 @@ describe("cosmosDBService", () => {
 
   it("should handle error when getting item by id", async () => {
     getItemByIDSpy.mockImplementationOnce(() =>
-      TE.leftTask(() => Promise.resolve(new Error("Item error")))
+      TE.left(new Error("Item error"))
     );
     const result = await cosmosDBService.getItemByID(mockContainer, "testID")();
     expect(E.isLeft(result)).toBeTruthy();
