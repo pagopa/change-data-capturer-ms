@@ -9,6 +9,7 @@ enum ServiceType {
   MongoDB,
   PostgreSQL,
 }
+
 export const createCosmosDBService = (
   databaseService: DatabaseService,
   cdcService: CDCService

@@ -28,8 +28,10 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
+    "@pagopa/fp-ts-kafkajs": "^0.3.0",
     "@pagopa/winston-ts": "^2.2.0",
     "fp-ts": "^2.16.1",
+    "kafkajs": "^2.2.4",
     "mongodb": "^6.3.0"
   },
   "devDependencies": {
