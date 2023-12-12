@@ -79,20 +79,6 @@ export const disconnectMongo = (
       new Error(`Impossible to disconnect the mongo client: ${reason}`)
   );
 
-// export const findLastDocument = <T>(
-//   collection: Collection<T>
-// ): TE.TaskEither<Error, O.Option<T>> =>
-//   pipe(
-//     TE.tryCatch(
-//       () => collection.find<T>({}).sort({ _id: -1 }).limit(1).tryNext(),
-//       (reason) =>
-//         new Error(
-//           `Unable to get the last inserted document from collection: " ${reason}`
-//         )
-//     ),
-//     TE.map(O.fromNullable)
-//   );
-
 export const findDocumentByID = (
   collection: Collection,
   id: string

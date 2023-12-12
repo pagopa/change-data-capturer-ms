@@ -33,11 +33,11 @@ const mockDb: Db = {
   createCollection: jest.fn(),
 } as unknown as Db;
 
+const dbSpy = jest.spyOn(mockClient, "db");
+
 describe("getMongoDb", () => {
   it("should get MongoDB database", async () => {
-    const dbSpy = jest
-      .spyOn(mockClient, "db")
-      .mockReturnValueOnce(mockDb as unknown as Db);
+    dbSpy.mockReturnValueOnce(mockDb);
 
     const result = getMongoDb(mockClient, "mock-db");
 
@@ -47,7 +47,7 @@ describe("getMongoDb", () => {
 
   const getDBError = new Error("Error while getting database");
   it("should handle error when getting database", async () => {
-    const dbSpy = jest.spyOn(mockClient, "db").mockImplementation(() => {
+    dbSpy.mockImplementation(() => {
       throw getDBError;
     });
 
@@ -79,21 +79,19 @@ const mockListCollectionsCursor: ListCollectionsCursor = {
   toArray: jest.fn,
 } as unknown as ListCollectionsCursor;
 
+const listCollectionsSpy = jest.spyOn(mockDb, "listCollections");
+const toArraySpy = jest.spyOn(mockListCollectionsCursor, "toArray");
+const collectionSpy = jest.spyOn(mockDb, "collection");
+
 describe("getMongoCollection", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.restoreAllMocks();
   });
+
   it("should get MongoDB collection", async () => {
-    jest
-      .spyOn(mockDb, "listCollections")
-      .mockReturnValueOnce(mockListCollectionsCursor);
-    jest
-      .spyOn(mockListCollectionsCursor, "toArray")
-      .mockReturnValueOnce(Promise.resolve(mockToArray));
-    const collectionSpy = jest
-      .spyOn(mockDb, "collection")
-      .mockReturnValueOnce(mockCollection);
+    listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
+    toArraySpy.mockReturnValueOnce(Promise.resolve(mockToArray));
+    collectionSpy.mockReturnValueOnce(mockCollection);
 
     const result = await getMongoCollection(mockDb, collectionName)();
 
@@ -105,15 +103,9 @@ describe("getMongoCollection", () => {
   });
 
   it("should get empty MongoDB collection list ", async () => {
-    jest
-      .spyOn(mockDb, "listCollections")
-      .mockReturnValueOnce(mockListCollectionsCursor);
-    jest
-      .spyOn(mockListCollectionsCursor, "toArray")
-      .mockReturnValueOnce(Promise.resolve([]));
-    const collectionSpy = jest
-      .spyOn(mockDb, "collection")
-      .mockReturnValueOnce(mockCollection);
+    listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
+    toArraySpy.mockReturnValueOnce(Promise.resolve([]));
+    collectionSpy.mockReturnValueOnce(mockCollection);
 
     const result = await getMongoCollection(mockDb, collectionName)();
 
@@ -128,7 +120,7 @@ describe("getMongoCollection", () => {
 
   it("should handle error when getting collection", async () => {
     const error = new Error("Error while getting the collection");
-    jest.spyOn(mockDb, "listCollections").mockImplementationOnce(() => {
+    listCollectionsSpy.mockImplementationOnce(() => {
       throw error;
     });
 
@@ -145,78 +137,67 @@ describe("getMongoCollection", () => {
       )
     );
   });
+});
+const createCollectionSpy = jest.spyOn(mockDb, "createCollection");
 
-  describe("getMongoCollection", () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      jest.restoreAllMocks();
+describe("getOrCreateMongoCollection", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should get or create MongoDB collection", async () => {
+    listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
+    toArraySpy.mockReturnValueOnce(Promise.resolve(mockToArray));
+    collectionSpy.mockReturnValueOnce(mockCollection);
+
+    const result = await getOrCreateMongoCollection(mockDb, collectionName)();
+
+    expect(mockDb.listCollections).toHaveBeenCalledWith({
+      name: collectionName,
     });
-    it("should get or create MongoDB collection", async () => {
-      jest
-        .spyOn(mockDb, "listCollections")
-        .mockReturnValueOnce(mockListCollectionsCursor);
-      jest
-        .spyOn(mockListCollectionsCursor, "toArray")
-        .mockReturnValueOnce(Promise.resolve(mockToArray));
-      const collectionSpy = jest
-        .spyOn(mockDb, "collection")
-        .mockReturnValueOnce(mockCollection);
+    expect(collectionSpy).toHaveBeenCalledWith(collectionName);
+    expect(result).toEqual(E.right(mockCollection));
+  });
 
-      const result = await getOrCreateMongoCollection(mockDb, collectionName)();
-
-      expect(mockDb.listCollections).toHaveBeenCalledWith({
-        name: collectionName,
-      });
-      expect(collectionSpy).toHaveBeenCalledWith(collectionName);
-      expect(result).toEqual(E.right(mockCollection));
+  it("should handle error when getting or creating collection", async () => {
+    const error = new Error("Error while getting collection");
+    listCollectionsSpy.mockImplementationOnce(() => {
+      throw error;
     });
 
-    it("should handle error when getting or creating collection", async () => {
-      const error = new Error("Error while getting collection");
-      jest.spyOn(mockDb, "listCollections").mockImplementationOnce(() => {
-        throw error;
-      });
+    const result = await getOrCreateMongoCollection(mockDb, collectionName)();
 
-      const result = await getOrCreateMongoCollection(mockDb, collectionName)();
-
-      expect(mockDb.listCollections).toHaveBeenCalledWith({
-        name: collectionName,
-      });
-      expect(result).toEqual(
-        E.left(
-          new Error(
-            "Impossible to Get the testCollection collection: Error: Error while getting collection"
-          )
+    expect(mockDb.listCollections).toHaveBeenCalledWith({
+      name: collectionName,
+    });
+    expect(result).toEqual(
+      E.left(
+        new Error(
+          "Impossible to Get the testCollection collection: Error: Error while getting collection"
         )
-      );
+      )
+    );
+  });
+
+  it("should create a MongoDB collection", async () => {
+    listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
+    toArraySpy.mockReturnValueOnce(Promise.resolve([]));
+    collectionSpy.mockReturnValueOnce(mockCollection);
+    createCollectionSpy.mockReturnValueOnce(Promise.resolve(mockCollection));
+
+    const result = await getOrCreateMongoCollection(mockDb, collectionName)();
+
+    expect(mockDb.listCollections).toHaveBeenCalledWith({
+      name: collectionName,
     });
-
-    it("should create a MongoDB collection", async () => {
-      jest
-        .spyOn(mockDb, "listCollections")
-        .mockReturnValueOnce(mockListCollectionsCursor);
-      jest
-        .spyOn(mockListCollectionsCursor, "toArray")
-        .mockReturnValueOnce(Promise.resolve([]));
-      const collectionSpy = jest
-        .spyOn(mockDb, "collection")
-        .mockReturnValueOnce(mockCollection);
-      const createCollectionSpy = jest
-        .spyOn(mockDb, "createCollection")
-        .mockReturnValueOnce(Promise.resolve(mockCollection));
-
-      const result = await getOrCreateMongoCollection(mockDb, collectionName)();
-
-      expect(mockDb.listCollections).toHaveBeenCalledWith({
-        name: collectionName,
-      });
-      expect(collectionSpy).toHaveBeenCalledTimes(0);
-      expect(createCollectionSpy).toHaveBeenCalledWith(collectionName);
-      expect(mockDb.createCollection).toHaveBeenCalledWith(collectionName);
-      expect(result).toEqual(E.right(mockCollection));
-    });
+    expect(collectionSpy).toHaveBeenCalledTimes(0);
+    expect(createCollectionSpy).toHaveBeenCalledWith(collectionName);
+    expect(mockDb.createCollection).toHaveBeenCalledWith(collectionName);
+    expect(result).toEqual(E.right(mockCollection));
   });
 });
+
+const closeSpy = jest.spyOn(mockClient, "close");
 
 describe("disconnectMongo", () => {
   beforeEach(() => {
@@ -224,9 +205,7 @@ describe("disconnectMongo", () => {
     jest.restoreAllMocks();
   });
   it("should get MongoDB client disconnected", async () => {
-    const closeSpy = jest
-      .spyOn(mockClient, "close")
-      .mockReturnValueOnce(Promise.resolve(void 0));
+    closeSpy.mockReturnValueOnce(Promise.resolve(void 0));
 
     const result = await disconnectMongo(mockClient)();
 
@@ -235,11 +214,9 @@ describe("disconnectMongo", () => {
   });
 
   it("should handle error during client disconnection", async () => {
-    const closeSpy = jest
-      .spyOn(mockClient, "close")
-      .mockImplementationOnce(() => {
-        throw new Error("Error while disconnecting client");
-      });
+    closeSpy.mockImplementationOnce(() => {
+      throw new Error("Error while disconnecting client");
+    });
 
     const result = await disconnectMongo(mockClient)();
 
@@ -267,20 +244,19 @@ describe("findDocumentByID", () => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
   });
-  it("should get the document by ID", async () => {
-    const collectionSpy = jest
-      .spyOn(mockCollection, "findOne")
-      .mockReturnValueOnce(Promise.resolve(mockWithIDDocument));
 
+  const findOneSpy = jest.spyOn(mockCollection, "findOne");
+  it("should get the document by ID", async () => {
+    findOneSpy.mockReturnValueOnce(Promise.resolve(mockWithIDDocument));
     const result = await findDocumentByID(mockCollection, testID)();
 
-    expect(collectionSpy).toHaveBeenCalledWith(mockParameter);
+    expect(findOneSpy).toHaveBeenCalledWith(mockParameter);
     expect(result).toEqual(E.right(O.some(mockWithIDDocument)));
   });
 
   it("should handle error when getting the document by ID", async () => {
     const error = new Error("Error while getting document by ID");
-    jest.spyOn(mockCollection, "findOne").mockImplementationOnce(() => {
+    findOneSpy.mockImplementationOnce(() => {
       throw error;
     });
 
@@ -298,25 +274,23 @@ describe("findDocumentByID", () => {
 
 const mockInsertOneResult = {} as unknown as InsertOneResult;
 const document = { id: testID } as unknown as Document;
-
+const insertOneSpy = jest.spyOn(mockCollection, "insertOne");
 describe("insertDocument", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
   });
-  it("should insert the document", async () => {
-    const collectionSpy = jest
-      .spyOn(mockCollection, "insertOne")
-      .mockReturnValueOnce(Promise.resolve(mockInsertOneResult));
 
+  it("should insert the document", async () => {
+    insertOneSpy.mockReturnValueOnce(Promise.resolve(mockInsertOneResult));
     const result = await insertDocument(mockCollection, document)();
 
-    expect(collectionSpy).toHaveBeenCalledWith(document);
+    expect(insertOneSpy).toHaveBeenCalledWith(document);
     expect(result).toEqual(E.right(mockInsertOneResult));
   });
 
   it("should handle error when getting the document by ID", async () => {
-    jest.spyOn(mockCollection, "insertOne").mockImplementationOnce(() => {
+    insertOneSpy.mockImplementationOnce(() => {
       throw new Error("Error while inserting the document");
     });
 
