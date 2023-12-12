@@ -2,6 +2,9 @@ import * as E from "fp-ts/Either";
 import { MongoClient } from "mongodb";
 import { mongoConnect } from "../utils";
 
+jest.mock("mongodb");
+const connectSpy = jest.spyOn(MongoClient, "connect");
+
 describe("mongoConnect", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -9,9 +12,7 @@ describe("mongoConnect", () => {
   });
 
   it("should connect to MongoDB", async () => {
-    const connectSpy = jest
-      .spyOn(MongoClient, "connect")
-      .mockImplementation(() => Promise.resolve({} as MongoClient));
+    connectSpy.mockImplementation(() => Promise.resolve({} as MongoClient));
     const uri = "mongodb://localhost:27017/test";
     const result = await mongoConnect(uri)();
 
@@ -22,11 +23,9 @@ describe("mongoConnect", () => {
   const error = new Error("Connection error");
 
   it("should handle connection error", async () => {
-    const connectSpy = jest
-      .spyOn(MongoClient, "connect")
-      .mockImplementation(() => {
-        throw error;
-      });
+    connectSpy.mockImplementation(() => {
+      throw error;
+    });
     const uri = "mongodb://localhost:27017/test";
     const result = await mongoConnect(uri)();
 

@@ -90,7 +90,7 @@ describe("getMongoCollection", () => {
 
   it("should get MongoDB collection", async () => {
     listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
-    toArraySpy.mockReturnValueOnce(Promise.resolve(mockToArray));
+    toArraySpy.mockResolvedValueOnce(mockToArray);
     collectionSpy.mockReturnValueOnce(mockCollection);
 
     const result = await getMongoCollection(mockDb, collectionName)();
@@ -104,7 +104,7 @@ describe("getMongoCollection", () => {
 
   it("should get empty MongoDB collection list ", async () => {
     listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
-    toArraySpy.mockReturnValueOnce(Promise.resolve([]));
+    toArraySpy.mockResolvedValueOnce([]);
     collectionSpy.mockReturnValueOnce(mockCollection);
 
     const result = await getMongoCollection(mockDb, collectionName)();
@@ -147,7 +147,7 @@ describe("getOrCreateMongoCollection", () => {
 
   it("should get or create MongoDB collection", async () => {
     listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
-    toArraySpy.mockReturnValueOnce(Promise.resolve(mockToArray));
+    toArraySpy.mockResolvedValueOnce(mockToArray);
     collectionSpy.mockReturnValueOnce(mockCollection);
 
     const result = await getOrCreateMongoCollection(mockDb, collectionName)();
@@ -181,9 +181,9 @@ describe("getOrCreateMongoCollection", () => {
 
   it("should create a MongoDB collection", async () => {
     listCollectionsSpy.mockReturnValueOnce(mockListCollectionsCursor);
-    toArraySpy.mockReturnValueOnce(Promise.resolve([]));
+    toArraySpy.mockResolvedValueOnce([]);
     collectionSpy.mockReturnValueOnce(mockCollection);
-    createCollectionSpy.mockReturnValueOnce(Promise.resolve(mockCollection));
+    createCollectionSpy.mockResolvedValueOnce(mockCollection);
 
     const result = await getOrCreateMongoCollection(mockDb, collectionName)();
 
@@ -205,7 +205,7 @@ describe("disconnectMongo", () => {
     jest.restoreAllMocks();
   });
   it("should get MongoDB client disconnected", async () => {
-    closeSpy.mockReturnValueOnce(Promise.resolve(void 0));
+    closeSpy.mockResolvedValueOnce(void 0);
 
     const result = await disconnectMongo(mockClient)();
 
@@ -247,7 +247,7 @@ describe("findDocumentByID", () => {
 
   const findOneSpy = jest.spyOn(mockCollection, "findOne");
   it("should get the document by ID", async () => {
-    findOneSpy.mockReturnValueOnce(Promise.resolve(mockWithIDDocument));
+    findOneSpy.mockResolvedValueOnce(mockWithIDDocument);
     const result = await findDocumentByID(mockCollection, testID)();
 
     expect(findOneSpy).toHaveBeenCalledWith(mockParameter);
@@ -282,7 +282,7 @@ describe("insertDocument", () => {
   });
 
   it("should insert the document", async () => {
-    insertOneSpy.mockReturnValueOnce(Promise.resolve(mockInsertOneResult));
+    insertOneSpy.mockResolvedValueOnce(mockInsertOneResult);
     const result = await insertDocument(mockCollection, document)();
 
     expect(insertOneSpy).toHaveBeenCalledWith(document);

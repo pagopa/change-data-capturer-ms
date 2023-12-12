@@ -142,9 +142,7 @@ describe("getItemById", () => {
     const id = "test-id";
     const expectedResult = { id: testID, lease: testLease };
 
-    itemReadMock.mockReturnValueOnce(
-      Promise.resolve({ resource: expectedResult })
-    );
+    itemReadMock.mockResolvedValueOnce({ resource: expectedResult });
 
     const result = await getItemByID(mockContainer, id)();
 

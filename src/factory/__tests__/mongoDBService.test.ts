@@ -1,14 +1,10 @@
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { left, right } from "fp-ts/lib/Either";
 import { Collection, Db, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../../capturer/cosmos/utils";
-import {
-  findDocumentByID,
-  getMongoCollection,
-  getMongoDb,
-  mongoConnect,
-} from "../../capturer/mongo/utils";
+import * as MongoUtils from "../../capturer/mongo/utils";
 import { mongoDBService } from "../mongoDBService";
 
 const mockMongoClient: MongoClient = {} as MongoClient;
@@ -18,6 +14,11 @@ const mockItem: ContinuationTokenItem = { id: "test" } as ContinuationTokenItem;
 
 jest.mock("../../capturer/mongo/utils");
 
+const mongoConnectSpy = jest.spyOn(MongoUtils, "mongoConnect");
+const getMongoDbSpy = jest.spyOn(MongoUtils, "getMongoDb");
+const getMongoCollectionSpy = jest.spyOn(MongoUtils, "getMongoCollection");
+const findDocumentByIDSpy = jest.spyOn(MongoUtils, "findDocumentByID");
+
 describe("mongoDBService", () => {
   beforeEach(() => {
     jest.resetModules();
@@ -25,9 +26,7 @@ describe("mongoDBService", () => {
   });
 
   it("should connect to Mongo successfully", async () => {
-    (mongoConnect as jest.Mock).mockImplementationOnce(() =>
-      TE.right(mockMongoClient)
-    );
+    mongoConnectSpy.mockImplementationOnce(() => TE.right(mockMongoClient));
     const result = await mongoDBService.connect({
       connection: "valid-connection",
     })();
@@ -36,7 +35,7 @@ describe("mongoDBService", () => {
   });
 
   it("should handle connection error", async () => {
-    (mongoConnect as jest.Mock).mockImplementationOnce(() =>
+    mongoConnectSpy.mockImplementationOnce(() =>
       TE.left(new Error("Connection error"))
     );
     const result = await mongoDBService.connect({
@@ -47,14 +46,14 @@ describe("mongoDBService", () => {
   });
 
   it("should get database successfully", () => {
-    (getMongoDb as jest.Mock).mockImplementationOnce(() => right(mockDatabase));
+    getMongoDbSpy.mockImplementationOnce(() => right(mockDatabase));
     const result = mongoDBService.getDatabase(mockMongoClient, "test-database");
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockDatabase));
   });
 
   it("should handle error when getting database", () => {
-    (getMongoDb as jest.Mock).mockImplementationOnce(() =>
+    getMongoDbSpy.mockImplementationOnce(() =>
       left(new Error("Database error"))
     );
     const result = mongoDBService.getDatabase(
@@ -66,7 +65,7 @@ describe("mongoDBService", () => {
   });
 
   it("should get resource successfully", async () => {
-    (getMongoCollection as jest.Mock).mockImplementationOnce(() =>
+    getMongoCollectionSpy.mockImplementationOnce(() =>
       TE.rightTask(() => Promise.resolve(mockCollection))
     );
     const result = await mongoDBService.getResource(
@@ -78,7 +77,7 @@ describe("mongoDBService", () => {
   });
 
   it("should handle error when getting resource", async () => {
-    (getMongoCollection as jest.Mock).mockImplementationOnce(() =>
+    getMongoCollectionSpy.mockImplementationOnce(() =>
       TE.leftTask(() => Promise.resolve(new Error("Container error")))
     );
     const result = await mongoDBService.getResource(
@@ -90,16 +89,16 @@ describe("mongoDBService", () => {
   });
 
   it("should get item by id succesfully", async () => {
-    (findDocumentByID as jest.Mock).mockImplementationOnce(() =>
-      TE.rightTask(() => Promise.resolve(mockItem))
+    findDocumentByIDSpy.mockImplementationOnce(() =>
+      TE.rightTask(() => Promise.resolve(O.fromNullable(mockItem)))
     );
     const result = await mongoDBService.getItemByID(mockCollection, "testID")();
     expect(E.isRight(result)).toBeTruthy();
-    expect(result).toEqual(right(mockItem));
+    expect(result).toEqual(right(O.fromNullable(mockItem)));
   });
 
   it("should handle error when getting item by id", async () => {
-    (findDocumentByID as jest.Mock).mockImplementationOnce(() =>
+    findDocumentByIDSpy.mockImplementationOnce(() =>
       TE.leftTask(() => Promise.resolve(new Error("Item error")))
     );
     const result = await mongoDBService.getItemByID(mockCollection, "testID")();
