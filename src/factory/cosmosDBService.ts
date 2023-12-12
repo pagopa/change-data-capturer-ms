@@ -1,4 +1,5 @@
-import { Either } from "fp-ts/lib/Either";
+import * as TE from "fp-ts/lib/TaskEither";
+import { pipe } from "fp-ts/lib/function";
 import {
   cosmosConnect,
   getContainer,
@@ -8,8 +9,8 @@ import {
 import { DBClient, DatabaseConfig, DatabaseService } from "./service";
 
 export const cosmosDBService = {
-  connect: (config: DatabaseConfig): Either<Error, DBClient> =>
-    cosmosConnect(config.connection, config.connection),
+  connect: (config: DatabaseConfig): TE.TaskEither<Error, DBClient> =>
+    pipe(cosmosConnect(config.connection, config.connection), TE.fromEither),
   getDatabase,
   getResource: getContainer,
   getItemByID,

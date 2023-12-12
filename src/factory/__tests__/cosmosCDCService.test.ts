@@ -40,11 +40,9 @@ describe("cosmosCDCService", () => {
     jest.clearAllMocks();
   });
   it("should process change feed successfully with lease", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(
-      right(mockCosmosClient)
-    );
-    mockDBServiceClient.getResource.mockReturnValue(right(mockDatabase));
-    mockDBServiceClient.connect.mockReturnValueOnce(right(mockContainer));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.getResource.mockReturnValue(TE.right(mockContainer));
+    mockDBServiceClient.connect.mockReturnValueOnce(right(mockCosmosClient));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
       TE.right(O.some({ id: "value", lease: "test" }))
     );
@@ -73,11 +71,9 @@ describe("cosmosCDCService", () => {
   });
 
   it("should process change feed successfully without lease", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(
-      right(mockCosmosClient)
-    );
-    mockDBServiceClient.getResource.mockReturnValue(right(mockDatabase));
-    mockDBServiceClient.connect.mockReturnValueOnce(right(mockContainer));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.getResource.mockReturnValue(TE.right(mockContainer));
+    mockDBServiceClient.connect.mockReturnValueOnce(right(mockCosmosClient));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(TE.right(O.none));
     getChangeFeedIteratorOptionsMock.mockReturnValueOnce({
       maxItemCount: 1,
@@ -105,11 +101,9 @@ describe("cosmosCDCService", () => {
   });
 
   it("should handle error during change feed processing", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(
-      right(mockCosmosClient)
-    );
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValueOnce(
-      left(new Error("Impossible to get the container"))
+      TE.left(new Error("Impossible to get the container"))
     );
 
     const result = await cosmosCDCService.processChangeFeed(
