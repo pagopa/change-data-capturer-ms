@@ -46,7 +46,7 @@ const recordMetadata: RecordMetadata[] = [
 
 const sendMessagingMock = jest.spyOn(KafkaFpTs, "sendMessages");
 describe("sendMessageEventHub", () => {
-  it("should send messages successfully and return RecordMetadata", async () => {
+  it("should send messages successfully and return a valid boolean", async () => {
     const messages: MessageType[] = [{ id: "1", message: "test" }];
 
     sendMessagingMock.mockReturnValue((_) =>
@@ -56,7 +56,26 @@ describe("sendMessageEventHub", () => {
 
     expect(E.isRight(result)).toBe(true);
     if (E.isRight(result)) {
-      expect(result.right).toEqual(recordMetadata);
+      expect(result.right).toEqual(true);
+    }
+
+    const errorMessages: MessageType[] = [
+      { id: "1", message: "test" },
+      { id: "2", message: "test" },
+    ];
+
+    sendMessagingMock.mockReturnValue((_) =>
+      TE.rightTask(() => Promise.resolve(recordMetadata))
+    );
+
+    const wrongResult = await sendMessageEventHub(
+      mockMessagingClient,
+      errorMessages
+    )();
+
+    expect(E.isRight(wrongResult)).toBe(true);
+    if (E.isRight(wrongResult)) {
+      expect(wrongResult.right).toEqual(false);
     }
   });
 

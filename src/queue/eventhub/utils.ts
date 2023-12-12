@@ -8,7 +8,6 @@ import { defaultLog } from "@pagopa/winston-ts";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { RecordMetadata } from "kafkajs";
 
 export const getEventHubProducer = <T>(
   connectionString: string
@@ -19,7 +18,7 @@ export const getEventHubProducer = <T>(
     E.mapLeft((errors) =>
       pipe(
         defaultLog.either.error(
-          `Error during decoding Cosmos ConnectionURI - ${errors}`
+          `Error during decoding EventHub ConnectionURI - ${errors}`
         ),
         () => new Error(`Error during decoding Event Hub SAS`)
       )
@@ -29,10 +28,19 @@ export const getEventHubProducer = <T>(
 export const sendMessageEventHub = <T>(
   messagingClient: KafkaProducerCompact<T>,
   messages: ReadonlyArray<T>
-): TE.TaskEither<Error, ReadonlyArray<RecordMetadata>> =>
+): TE.TaskEither<Error, boolean> =>
   pipe(
     messages,
     sendMessages<T>(messagingClient),
+    TE.map((metadata) => (messages.length === metadata.length ? true : false)),
+    TE.map((success) => {
+      if (!success) {
+        defaultLog.taskEither.info(
+          `Not all messages were successfully sent to Event Hub.`
+        );
+      }
+      return success;
+    }),
     TE.mapLeft(
       (sendFailureErrors) =>
         new Error(
