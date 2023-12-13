@@ -40,7 +40,7 @@ export const getDatabase = (
 export const getContainer = (
   database: Database,
   containerName: string
-): E.Either<Error, Container> =>
+): TE.TaskEither<Error, Container> =>
   pipe(
     E.tryCatch(
       () => database.container(containerName),
@@ -48,7 +48,8 @@ export const getContainer = (
         new Error(
           `Impossible to get container ${containerName}: ${String(reason)}`
         )
-    )
+    ),
+    TE.fromEither
   );
 
 export const upsertItem = <T>(

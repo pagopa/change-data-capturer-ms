@@ -1,6 +1,5 @@
 /* eslint-disable no-var */
 /* eslint-disable no-underscore-dangle */
-
 import {
   ChangeFeedIteratorOptions,
   ChangeFeedStartFrom,
@@ -11,9 +10,6 @@ import * as E from "fp-ts/Either";
 import { getChangeFeedIteratorOptions, processChangeFeed } from "../cosmos";
 import { ContinuationTokenItem } from "../utils";
 
-// const mockContinuationToken = { _tag: "Continuation", value: "token" };
-// const mockBeginningIterator = { _tag: "Beginning" };
-
 describe("getChangeFeedIteratorOptions", () => {
   beforeEach(() => {
     jest.resetModules();
@@ -22,8 +18,6 @@ describe("getChangeFeedIteratorOptions", () => {
   it("should return ChangeFeedIteratorOptions with Continuation when continuationToken is provided", () => {
     const continuationToken = "testToken";
     const maxItemCount = 10;
-
-    // continuationMock.mockImplementationOnce((_) => mockContinuationToken);
 
     const result = getChangeFeedIteratorOptions(
       continuationToken,

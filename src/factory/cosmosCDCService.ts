@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
@@ -27,13 +26,13 @@ export const cosmosCDCService = {
         E.bind("database", () =>
           cosmosDBServiceClient.getDatabase(client, database)
         ),
-        E.bind("container", ({ database }) =>
+        TE.fromEither,
+        TE.bind("container", ({ database }) =>
           cosmosDBServiceClient.getResource(database, resource)
         ),
-        E.bind("leaseContainer", ({ database }) =>
+        TE.bind("leaseContainer", ({ database }) =>
           cosmosDBServiceClient.getResource(database, leaseResource)
         ),
-        TE.fromEither,
         TE.bind("continuationToken", ({ leaseContainer }) =>
           cosmosDBServiceClient.getItemByID(leaseContainer, prefix)
         ),

@@ -1,10 +1,12 @@
 import { cosmosCDCService } from "./cosmosCDCService";
 import { cosmosDBService } from "./cosmosDBService";
+import { mongoCDCService } from "./mongoCDCService";
+import { mongoDBService } from "./mongoDBService";
 import { CDCService, DatabaseService } from "./service";
 
 export type Service = DatabaseService & CDCService;
 
-enum ServiceType {
+export enum ServiceType {
   Cosmos,
   MongoDB,
   PostgreSQL,
@@ -15,14 +17,14 @@ export const createCosmosDBService = (
   cdcService: CDCService
 ): Service => ({ ...databaseService, ...cdcService });
 
-const notSupportedError = "Service still not supported";
+export const notSupportedError = "Service still not supported";
 
 export const createDatabaseService = (type: ServiceType): Service => {
   switch (type) {
     case ServiceType.Cosmos:
       return { ...cosmosDBService, ...cosmosCDCService };
     case ServiceType.MongoDB:
-      throw new Error(notSupportedError);
+      return { ...mongoDBService, ...mongoCDCService };
     case ServiceType.PostgreSQL:
       throw new Error(notSupportedError);
     default:
