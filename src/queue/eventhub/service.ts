@@ -1,19 +1,24 @@
 import { KafkaProducerCompact } from "@pagopa/fp-ts-kafkajs/dist/lib/KafkaProducerCompact";
+import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
-import { RecordMetadata } from "kafkajs";
+
+import { pipe } from "fp-ts/lib/function";
 import { getEventHubProducer, sendMessageEventHub } from "./utils";
 
 export type QueueProducer<T> = KafkaProducerCompact<T>;
-export type MessageMetadata = RecordMetadata;
 export interface QueueService {
-  getProducer<T>(connectionString: string): QueueProducer<T>;
-  produce<T>(
-    producer: QueueProducer<T>,
-    messages: ReadonlyArray<T>
-  ): TE.TaskEither<Error, ReadonlyArray<MessageMetadata>>;
+  produce<T>(messages: ReadonlyArray<T>): TE.TaskEither<Error, boolean>;
 }
 
 export const eventHubService = {
   getProducer: getEventHubProducer,
   produce: sendMessageEventHub,
 };
+
+export const createEventHubService = (
+  connectionString: string
+): E.Either<Error, QueueService> =>
+  pipe(
+    getEventHubProducer(connectionString),
+    E.map((producer) => ({ produce: sendMessageEventHub(producer) }))
+  );

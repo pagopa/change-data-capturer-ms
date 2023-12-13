@@ -13,6 +13,7 @@ export type DB = Database | Db;
 export type DBClient = CosmosClient | MongoClient;
 export type Resource = Container | Collection;
 export type Item = ContinuationTokenItem | Document;
+
 export interface DatabaseService {
   connect(config: DatabaseConfig): TaskEither<Error, DBClient>;
   getDatabase(client: DBClient, name: string): Either<Error, DB>;

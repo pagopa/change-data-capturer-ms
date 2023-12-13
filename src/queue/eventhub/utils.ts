@@ -25,28 +25,29 @@ export const getEventHubProducer = <T>(
     )
   );
 
-export const sendMessageEventHub = <T>(
-  messagingClient: KafkaProducerCompact<T>,
-  messages: ReadonlyArray<T>
-): TE.TaskEither<Error, boolean> =>
-  pipe(
-    messages,
-    sendMessages<T>(messagingClient),
-    TE.map((metadata) => (messages.length === metadata.length ? true : false)),
-    TE.map((success) => {
-      if (!success) {
-        defaultLog.taskEither.info(
-          `Not all messages were successfully sent to Event Hub.`
-        );
-      }
-      return success;
-    }),
-    TE.mapLeft(
-      (sendFailureErrors) =>
-        new Error(
-          `Error during sending messages to Event Hub - ${sendFailureErrors
-            .map((error) => error.message)
-            .join(", ")}`
-        )
-    )
-  );
+export const sendMessageEventHub =
+  <T>(messagingClient: KafkaProducerCompact<T>) =>
+  (messages: ReadonlyArray<T>): TE.TaskEither<Error, boolean> =>
+    pipe(
+      messages,
+      sendMessages<T>(messagingClient),
+      TE.map((metadata) =>
+        messages.length === metadata.length ? true : false
+      ),
+      TE.map((success) => {
+        if (!success) {
+          defaultLog.taskEither.info(
+            `Not all messages were successfully sent to Event Hub.`
+          );
+        }
+        return success;
+      }),
+      TE.mapLeft(
+        (sendFailureErrors) =>
+          new Error(
+            `Error during sending messages to Event Hub - ${sendFailureErrors
+              .map((error) => error.message)
+              .join(", ")}`
+          )
+      )
+    );

@@ -36,7 +36,7 @@ describe("getEventHubProducer", () => {
   });
 });
 
-type MessageType = { id: string; message: string };
+export type MessageType = { id: string; message: string };
 
 const mockMessagingClient: KafkaProducerCompact<MessageType> =
   {} as unknown as KafkaProducerCompact<MessageType>;
@@ -45,14 +45,14 @@ const recordMetadata: RecordMetadata[] = [
 ];
 
 const sendMessagingMock = jest.spyOn(KafkaFpTs, "sendMessages");
+const messages: MessageType[] = [{ id: "1", message: "test" }];
+
 describe("sendMessageEventHub", () => {
   it("should send messages successfully and return a valid boolean", async () => {
-    const messages: MessageType[] = [{ id: "1", message: "test" }];
-
     sendMessagingMock.mockReturnValue((_) =>
       TE.rightTask(() => Promise.resolve(recordMetadata))
     );
-    const result = await sendMessageEventHub(mockMessagingClient, messages)();
+    const result = await sendMessageEventHub(mockMessagingClient)(messages)();
 
     expect(E.isRight(result)).toBe(true);
     if (E.isRight(result)) {
@@ -68,8 +68,7 @@ describe("sendMessageEventHub", () => {
       TE.rightTask(() => Promise.resolve(recordMetadata))
     );
 
-    const wrongResult = await sendMessageEventHub(
-      mockMessagingClient,
+    const wrongResult = await sendMessageEventHub(mockMessagingClient)(
       errorMessages
     )();
 
@@ -97,7 +96,7 @@ describe("sendMessageEventHub", () => {
       TE.leftTask(() => Promise.resolve(storableSendFailureError))
     );
 
-    const result = await sendMessageEventHub(mockMessagingClient, [])();
+    const result = await sendMessageEventHub(mockMessagingClient)(messages)();
 
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {
