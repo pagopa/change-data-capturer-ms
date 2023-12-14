@@ -2,9 +2,9 @@ import { cosmosCDCService } from "./cosmosCDCService";
 import { cosmosDBService } from "./cosmosDBService";
 import { mongoCDCService } from "./mongoCDCService";
 import { mongoDBService } from "./mongoDBService";
-import { CDCService, DatabaseService } from "./service";
+import { ICDCService, IDatabaseService } from "./service";
 
-export type Service = DatabaseService & CDCService;
+export type Service = IDatabaseService & ICDCService;
 
 export enum ServiceType {
   Cosmos,
@@ -13,8 +13,8 @@ export enum ServiceType {
 }
 
 export const createCosmosDBService = (
-  databaseService: DatabaseService,
-  cdcService: CDCService
+  databaseService: IDatabaseService,
+  cdcService: ICDCService,
 ): Service => ({ ...databaseService, ...cdcService });
 
 export const notSupportedError = "Service still not supported";

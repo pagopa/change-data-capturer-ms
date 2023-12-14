@@ -9,7 +9,7 @@ import {
   processChangeFeed,
 } from "../capturer/cosmos/cosmos";
 import { cosmosDBService } from "./cosmosDBService";
-import { CDCService } from "./service";
+import { ICDCService } from "./service";
 
 export const cosmosCDCService = {
   processChangeFeed:
@@ -18,23 +18,23 @@ export const cosmosCDCService = {
       database: string,
       resource: string,
       leaseResource?: string,
-      prefix?: string
+      prefix?: string,
     ) =>
     (cosmosDBServiceClient: typeof cosmosDBService): TaskEither<Error, void> =>
       pipe(
         E.Do,
         E.bind("database", () =>
-          cosmosDBServiceClient.getDatabase(client, database)
+          cosmosDBServiceClient.getDatabase(client, database),
         ),
         TE.fromEither,
         TE.bind("container", ({ database }) =>
-          cosmosDBServiceClient.getResource(database, resource)
+          cosmosDBServiceClient.getResource(database, resource),
         ),
         TE.bind("leaseContainer", ({ database }) =>
-          cosmosDBServiceClient.getResource(database, leaseResource)
+          cosmosDBServiceClient.getResource(database, leaseResource),
         ),
         TE.bind("continuationToken", ({ leaseContainer }) =>
-          cosmosDBServiceClient.getItemByID(leaseContainer, prefix)
+          cosmosDBServiceClient.getItemByID(leaseContainer, prefix),
         ),
         TE.chain(({ continuationToken, container, leaseContainer }) =>
           pipe(
@@ -46,10 +46,10 @@ export const cosmosCDCService = {
               processChangeFeed(
                 container,
                 changeFeedIteratorOptions,
-                leaseContainer
-              )
-          )
+                leaseContainer,
+              ),
+          ),
         ),
-        TE.map(constVoid)
+        TE.map(constVoid),
       ),
-} satisfies CDCService;
+} satisfies ICDCService;

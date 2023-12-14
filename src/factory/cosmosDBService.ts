@@ -6,12 +6,12 @@ import {
   getDatabase,
   getItemByID,
 } from "../capturer/cosmos/utils";
-import { DBClient, DatabaseConfig, DatabaseService } from "./service";
+import { DBClient, IDatabaseConfig, IDatabaseService } from "./service";
 
 export const cosmosDBService = {
-  connect: (config: DatabaseConfig): TE.TaskEither<Error, DBClient> =>
+  connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
     pipe(cosmosConnect(config.connection, config.connection), TE.fromEither),
   getDatabase,
   getResource: getContainer,
   getItemByID,
-} satisfies DatabaseService;
+} satisfies IDatabaseService;

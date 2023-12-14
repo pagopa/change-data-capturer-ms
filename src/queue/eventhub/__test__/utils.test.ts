@@ -7,10 +7,10 @@ import { RecordMetadata } from "kafkajs";
 import { getEventHubProducer, sendMessageEventHub } from "../utils";
 
 const DUMMY_SAS = {
-  url: "dummy.servicebus.windows.net",
   key: "dummykeytp5bIGW+QCTtGh8RIpcOCHg2CfJU7ij1uQmA=",
-  policy: "dummy-policy",
   name: "dummy-name",
+  policy: "dummy-policy",
+  url: "dummy.servicebus.windows.net",
 };
 const DUMMY_CONNECTION_STRING = `Endpoint=sb://${DUMMY_SAS.url}/;SharedAccessKeyName=${DUMMY_SAS.policy};SharedAccessKey=${DUMMY_SAS.key};EntityPath=${DUMMY_SAS.name}`;
 
@@ -36,16 +36,19 @@ describe("getEventHubProducer", () => {
   });
 });
 
-export type MessageType = { id: string; message: string };
+export interface IMessageType {
+  readonly id: string;
+  readonly message: string;
+}
 
-const mockMessagingClient: KafkaProducerCompact<MessageType> =
-  {} as unknown as KafkaProducerCompact<MessageType>;
-const recordMetadata: RecordMetadata[] = [
-  { topicName: "test", partition: 0, errorCode: 0 },
+const mockMessagingClient: KafkaProducerCompact<IMessageType> =
+  {} as unknown as KafkaProducerCompact<IMessageType>;
+const recordMetadata: ReadonlyArray<RecordMetadata> = [
+  { errorCode: 0, partition: 0, topicName: "test" },
 ];
 
 const sendMessagingMock = jest.spyOn(KafkaFpTs, "sendMessages");
-const messages: MessageType[] = [{ id: "1", message: "test" }];
+const messages: ReadonlyArray<IMessageType> = [{ id: "1", message: "test" }];
 
 describe("sendMessageEventHub", () => {
   it("should send messages successfully and return a valid boolean", async () => {
@@ -59,7 +62,7 @@ describe("sendMessageEventHub", () => {
       expect(result.right).toEqual(true);
     }
 
-    const errorMessages: MessageType[] = [
+    const errorMessages: ReadonlyArray<IMessageType> = [
       { id: "1", message: "test" },
       { id: "2", message: "test" },
     ];
@@ -79,16 +82,16 @@ describe("sendMessageEventHub", () => {
   });
 
   it("should handle send failure and return an error", async () => {
-    const storableSendFailureError: Array<
-      IStorableSendFailureError<MessageType>
+    const storableSendFailureError: ReadonlyArray<
+      IStorableSendFailureError<IMessageType>
     > = [
       {
-        name: "KafkaJSError",
-        message: "Broker unavailable",
         body: {
           id: "",
           message: "",
         },
+        message: "Broker unavailable",
+        name: "KafkaJSError",
         retriable: false,
       },
     ];
