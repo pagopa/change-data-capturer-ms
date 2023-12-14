@@ -9,7 +9,7 @@ export type QueueProducer<T> = KafkaProducerCompact<T>;
 export interface IQueueService {
   readonly produce: <T>(
     messages: ReadonlyArray<T>
-  ) => TE.TaskEither<Error, boolean>;
+  ) => TE.TaskEither<Error, void>;
 }
 
 export const eventHubService = {

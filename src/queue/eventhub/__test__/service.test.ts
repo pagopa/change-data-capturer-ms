@@ -16,7 +16,9 @@ const mockProducer = {} as KafkaProducerCompact<IMessageType>;
 describe("EventHubService", () => {
   it("should create EventHubService", async () => {
     getEventHubProducerSpy.mockImplementationOnce(() => E.right(mockProducer));
-    sendMessageEventHubSpy.mockImplementationOnce((_) => () => TE.right(true));
+    sendMessageEventHubSpy.mockImplementationOnce(
+      (_) => () => TE.right(void 0)
+    );
 
     const result = createEventHubService(connectionString);
 

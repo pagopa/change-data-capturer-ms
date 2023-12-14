@@ -51,7 +51,7 @@ const sendMessagingMock = jest.spyOn(KafkaFpTs, "sendMessages");
 const messages: ReadonlyArray<IMessageType> = [{ id: "1", message: "test" }];
 
 describe("sendMessageEventHub", () => {
-  it("should send messages successfully and return a valid boolean", async () => {
+  it("should send messages successfully", async () => {
     sendMessagingMock.mockReturnValue((_) =>
       TE.rightTask(() => Promise.resolve(recordMetadata))
     );
@@ -59,25 +59,7 @@ describe("sendMessageEventHub", () => {
 
     expect(E.isRight(result)).toBe(true);
     if (E.isRight(result)) {
-      expect(result.right).toEqual(true);
-    }
-
-    const errorMessages: ReadonlyArray<IMessageType> = [
-      { id: "1", message: "test" },
-      { id: "2", message: "test" },
-    ];
-
-    sendMessagingMock.mockReturnValue((_) =>
-      TE.rightTask(() => Promise.resolve(recordMetadata))
-    );
-
-    const wrongResult = await sendMessageEventHub(mockMessagingClient)(
-      errorMessages
-    )();
-
-    expect(E.isRight(wrongResult)).toBe(true);
-    if (E.isRight(wrongResult)) {
-      expect(wrongResult.right).toEqual(false);
+      expect(result.right).toEqual(void 0);
     }
   });
 
