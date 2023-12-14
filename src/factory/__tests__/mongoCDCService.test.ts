@@ -12,7 +12,7 @@ import {
 import * as MongoCapturer from "../../capturer/mongo/mongo";
 import { watchMongoCollection } from "../../capturer/mongo/mongo";
 import { mongoCDCService } from "../mongoCDCService";
-import { DatabaseService } from "../service";
+import { IDatabaseService } from "../service";
 
 const mockMongoClient: MongoClient = {} as MongoClient;
 const mockDatabase: Db = {} as Db;
@@ -35,7 +35,7 @@ const mockDBServiceClient = {
   getResource: jest.fn(),
   connect: jest.fn(),
   getItemByID: jest.fn(),
-} satisfies DatabaseService;
+} satisfies IDatabaseService;
 
 describe("mongoCDCService", () => {
   beforeEach(() => {
@@ -47,14 +47,14 @@ describe("mongoCDCService", () => {
     mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockCollection));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
-      TE.right(O.some({ id: "value", lease: "test" }))
+      TE.right(O.some({ id: "value", lease: "test" })),
     );
     const result = await mongoCDCService.processChangeFeed(
       mockMongoClient,
       "test-database",
       "test-container",
       "test-lease-container",
-      "test-prefix"
+      "test-prefix",
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
@@ -70,30 +70,30 @@ describe("mongoCDCService", () => {
       "test-database",
       "test-container",
       "test-lease-container",
-      "test-prefix"
+      "test-prefix",
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
     expect(watchMongoCollection).toHaveBeenCalledWith(
       mockCollection,
-      undefined
+      undefined,
     );
   });
 
   it("should handle error during change feed processing", async () => {
     mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValueOnce(
-      TE.left(new Error("Impossible to get the container"))
+      TE.left(new Error("Impossible to get the container")),
     );
 
     const result = await mongoCDCService.processChangeFeed(
       mockMongoClient,
       "invalid-database",
-      "invalid-container"
+      "invalid-container",
     )(mockDBServiceClient)();
 
     expect(result).toEqual(
-      E.left(new Error("Impossible to get the container"))
+      E.left(new Error("Impossible to get the container")),
     );
   });
 });

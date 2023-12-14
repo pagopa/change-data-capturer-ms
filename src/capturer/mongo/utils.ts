@@ -15,40 +15,43 @@ import {
 export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
   TE.tryCatch(
     () => MongoClient.connect(uri),
-    (reason) => new Error(`Impossible to connect to MongoDB: ${String(reason)}`)
+    (reason) =>
+      new Error(`Impossible to connect to MongoDB: ${String(reason)}`),
   );
 
 export const getMongoDb = (
   client: MongoClient,
-  dbName: string
+  dbName: string,
 ): E.Either<Error, Db> =>
   E.tryCatch(
     () => client.db(dbName),
-    (reason) => new Error(`Impossible to Get the ${dbName} db: ${reason}`)
+    (reason) => new Error(`Impossible to Get the ${dbName} db: ${reason}`),
   );
 
 export const getMongoCollection = <T = Document>(
   db: Db,
-  collectionName: string
+  collectionName: string,
 ): TE.TaskEither<Error, Collection<T>> =>
   pipe(
     TE.tryCatch(
       () => db.listCollections({ name: collectionName }).toArray(),
       (reason) =>
         new Error(
-          `Impossible to Get the ${collectionName} collection: ${reason}`
-        )
+          `Impossible to Get the ${collectionName} collection: ${reason}`,
+        ),
     ),
     TE.map(AR.head),
     TE.chain(
-      TE.fromOption(() => Error(`Collection ${collectionName} does not exists`))
+      TE.fromOption(() =>
+        Error(`Collection ${collectionName} does not exists`),
+      ),
     ),
-    TE.map(() => db.collection(collectionName))
+    TE.map(() => db.collection(collectionName)),
   );
 
 export const getOrCreateMongoCollection = <T extends Document>(
   db: Db,
-  collectionName: string
+  collectionName: string,
 ): TE.TaskEither<Error, Collection<T>> =>
   pipe(
     TE.tryCatch(
@@ -56,32 +59,32 @@ export const getOrCreateMongoCollection = <T extends Document>(
       // eslint-disable-next-line sonarjs/no-identical-functions
       (reason) =>
         new Error(
-          `Impossible to Get the ${collectionName} collection: ${reason}`
-        )
+          `Impossible to Get the ${collectionName} collection: ${reason}`,
+        ),
     ),
     TE.map(AR.head),
     TE.chain(
       flow(
         O.map(() => TE.of(db.collection<T>(collectionName))),
         O.getOrElse(() =>
-          TE.tryCatch(() => db.createCollection(collectionName), E.toError)
-        )
-      )
-    )
+          TE.tryCatch(() => db.createCollection(collectionName), E.toError),
+        ),
+      ),
+    ),
   );
 
 export const disconnectMongo = (
-  client: MongoClient
+  client: MongoClient,
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(
     () => client.close(),
     (reason) =>
-      new Error(`Impossible to disconnect the mongo client: ${reason}`)
+      new Error(`Impossible to disconnect the mongo client: ${reason}`),
   );
 
 export const findDocumentByID = (
   collection: Collection,
-  id: string
+  id: string,
 ): TE.TaskEither<Error, O.Option<Document>> =>
   pipe(
     TE.tryCatch(
@@ -91,17 +94,17 @@ export const findDocumentByID = (
       },
       (reason) =>
         new Error(
-          `Unable to get the the document with ID ${id} from collection: ${reason}`
-        )
+          `Unable to get the the document with ID ${id} from collection: ${reason}`,
+        ),
     ),
-    TE.map(O.fromNullable)
+    TE.map(O.fromNullable),
   );
 
 export const insertDocument = <T>(
   collection: Collection<T>,
-  doc: OptionalUnlessRequiredId<T>
+  doc: OptionalUnlessRequiredId<T>,
 ): TE.TaskEither<Error, InsertOneResult<T>> =>
   TE.tryCatch(
     () => collection.insertOne(doc),
-    (reason) => new Error(`Unable to insert the document: ${reason}`)
+    (reason) => new Error(`Unable to insert the document: ${reason}`),
   );

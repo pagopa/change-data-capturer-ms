@@ -56,9 +56,9 @@ describe("getMongoDb", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          "Impossible to Get the mock-db db: Error: Error while getting database"
-        )
-      )
+          "Impossible to Get the mock-db db: Error: Error while getting database",
+        ),
+      ),
     );
     expect(dbSpy).toHaveBeenCalledWith("mock-db");
   });
@@ -114,7 +114,7 @@ describe("getMongoCollection", () => {
     });
     expect(collectionSpy).toHaveBeenCalledTimes(0);
     expect(result).toEqual(
-      E.left(new Error(`Collection ${collectionName} does not exists`))
+      E.left(new Error(`Collection ${collectionName} does not exists`)),
     );
   });
 
@@ -132,9 +132,9 @@ describe("getMongoCollection", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          "Impossible to Get the testCollection collection: Error: Error while getting the collection"
-        )
-      )
+          "Impossible to Get the testCollection collection: Error: Error while getting the collection",
+        ),
+      ),
     );
   });
 });
@@ -173,9 +173,9 @@ describe("getOrCreateMongoCollection", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          "Impossible to Get the testCollection collection: Error: Error while getting collection"
-        )
-      )
+          "Impossible to Get the testCollection collection: Error: Error while getting collection",
+        ),
+      ),
     );
   });
 
@@ -224,9 +224,9 @@ describe("disconnectMongo", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          `Impossible to disconnect the mongo client: Error: Error while disconnecting client`
-        )
-      )
+          `Impossible to disconnect the mongo client: Error: Error while disconnecting client`,
+        ),
+      ),
     );
   });
 });
@@ -265,9 +265,9 @@ describe("findDocumentByID", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          `Unable to get the the document with ID ${testID} from collection: Error: Error while getting document by ID`
-        )
-      )
+          `Unable to get the the document with ID ${testID} from collection: Error: Error while getting document by ID`,
+        ),
+      ),
     );
   });
 });
@@ -299,9 +299,9 @@ describe("insertDocument", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          `Unable to insert the document: Error: Error while inserting the document`
-        )
-      )
+          `Unable to insert the document: Error: Error while inserting the document`,
+        ),
+      ),
     );
   });
 });

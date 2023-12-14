@@ -53,7 +53,7 @@ describe("cosmosConnect", () => {
 
     expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(
-      E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`))
+      E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`)),
     );
   });
 });
@@ -153,7 +153,7 @@ describe("getItemById", () => {
         O.some({
           id: "test-id",
           lease: "test-lease",
-        })
+        }),
       );
     }
   });
@@ -168,8 +168,8 @@ describe("getItemById", () => {
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
         new Error(
-          `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`
-        )
+          `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`,
+        ),
       );
     }
   });

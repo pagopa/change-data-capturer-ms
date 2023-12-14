@@ -32,7 +32,7 @@ describe("mongoConnect", () => {
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
-        new Error("Impossible to connect to MongoDB: Error: Connection error")
+        new Error("Impossible to connect to MongoDB: Error: Connection error"),
       );
     }
     expect(connectSpy).toHaveBeenCalledWith(uri);

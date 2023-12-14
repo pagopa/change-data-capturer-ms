@@ -1,22 +1,22 @@
-require("@rushstack/eslint-patch/modern-module-resolution");
-
 module.exports = {
   env: {
-    es2021: true,
+    es6: true,
     node: true,
   },
-  rules: {
-    "max-classes-per-file": "off",
-    "no-console": "off",
-  },
-  parser: "@typescript-eslint/parser",
-  overrides: [
-    {
-      files: ["*.ts", "*.tsx"],
-      extends: ["@pagopa/eslint-config/recommended"],
-      parserOptions: {
-        project: ["./tsconfig.json"],
-      },
-    },
+  ignorePatterns: [
+    "node_modules",
+    "generated",
+    "**/__tests__/*",
+    "**/__mocks__/*",
+    "*.d.ts",
+    "*.js",
+    "Dangerfile.ts",
   ],
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.json",
+    sourceType: "module",
+  },
+  extends: ["@pagopa/eslint-config/strong"],
+  rules: {},
 };

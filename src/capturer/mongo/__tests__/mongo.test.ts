@@ -52,7 +52,7 @@ describe("watchMongoCollection", () => {
         resumeAfter: {
           _data: expect.any(Binary),
         },
-      })
+      }),
     );
   });
 
@@ -68,8 +68,8 @@ describe("watchMongoCollection", () => {
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
         new Error(
-          'Impossible to watch the mockCollection collection: " Error: Watch failed'
-        )
+          'Impossible to watch the mockCollection collection: " Error: Watch failed',
+        ),
       );
     }
   });
@@ -86,7 +86,7 @@ describe("setMongoListenerOnEventChange", () => {
     expect(E.isRight(result)).toBe(true);
     expect(mockOnChangeFunction).toHaveBeenCalledWith(
       "change",
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -101,8 +101,8 @@ describe("setMongoListenerOnEventChange", () => {
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
         new Error(
-          'Impossible to set the listener: " Error: Listener setup failed'
-        )
+          'Impossible to set the listener: " Error: Listener setup failed',
+        ),
       );
     }
   });

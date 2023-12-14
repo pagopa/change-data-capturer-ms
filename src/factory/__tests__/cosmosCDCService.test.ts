@@ -13,7 +13,7 @@ import {
   processChangeFeed,
 } from "../../capturer/cosmos/cosmos";
 import { cosmosCDCService } from "../cosmosCDCService";
-import { DatabaseService } from "../service";
+import { IDatabaseService } from "../service";
 
 const mockCosmosClient: CosmosClient = {} as CosmosClient;
 const mockDatabase: Database = {} as Database;
@@ -32,7 +32,7 @@ const mockDBServiceClient = {
   getResource: jest.fn(),
   connect: jest.fn(),
   getItemByID: jest.fn(),
-} satisfies DatabaseService;
+} satisfies IDatabaseService;
 
 describe("cosmosCDCService", () => {
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe("cosmosCDCService", () => {
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockContainer));
     mockDBServiceClient.connect.mockReturnValueOnce(right(mockCosmosClient));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
-      TE.right(O.some({ id: "value", lease: "test" }))
+      TE.right(O.some({ id: "value", lease: "test" })),
     );
     getChangeFeedIteratorOptionsMock.mockReturnValueOnce({
       maxItemCount: 1,
@@ -55,7 +55,7 @@ describe("cosmosCDCService", () => {
       "test-database",
       "test-container",
       "test-lease-container",
-      "test-prefix"
+      "test-prefix",
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
@@ -66,7 +66,7 @@ describe("cosmosCDCService", () => {
         maxItemCount: 1,
         changeFeedStartFrom: ChangeFeedStartFrom.Continuation("test"),
       },
-      mockContainer
+      mockContainer,
     );
   });
 
@@ -85,7 +85,7 @@ describe("cosmosCDCService", () => {
       "test-database",
       "test-container",
       "test-lease-container",
-      "test-prefix"
+      "test-prefix",
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
@@ -96,20 +96,20 @@ describe("cosmosCDCService", () => {
         maxItemCount: 1,
         changeFeedStartFrom: ChangeFeedStartFrom.Beginning(),
       },
-      mockContainer
+      mockContainer,
     );
   });
 
   it("should handle error during change feed processing", async () => {
     mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValueOnce(
-      TE.left(new Error("Impossible to get the container"))
+      TE.left(new Error("Impossible to get the container")),
     );
 
     const result = await cosmosCDCService.processChangeFeed(
       mockCosmosClient,
       "invalid-database",
-      "invalid-container"
+      "invalid-container",
     )(mockDBServiceClient)();
 
     expect(result).toEqual(left(new Error("Impossible to get the container")));
