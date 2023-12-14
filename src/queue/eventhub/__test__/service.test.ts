@@ -17,14 +17,14 @@ describe("EventHubService", () => {
   it("should create EventHubService", async () => {
     getEventHubProducerSpy.mockImplementationOnce(() => E.right(mockProducer));
     sendMessageEventHubSpy.mockImplementationOnce(
-      (_) => () => TE.right(void 0)
+      (_) => () => TE.right(void 0),
     );
 
     const result = createEventHubService(connectionString);
 
     expect(getEventHubProducerSpy).toHaveBeenCalledWith(connectionString);
     expect(result).toEqual(
-      E.right(expect.objectContaining({ produce: expect.any(Function) }))
+      E.right(expect.objectContaining({ produce: expect.any(Function) })),
     );
   });
 

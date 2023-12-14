@@ -12,6 +12,6 @@ export const cosmosDBService = {
   connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
     pipe(cosmosConnect(config.connection, config.connection), TE.fromEither),
   getDatabase,
-  getResource: getContainer,
   getItemByID,
+  getResource: getContainer,
 } satisfies IDatabaseService;

@@ -12,22 +12,22 @@ import { ContinuationTokenItem, upsertItem } from "./utils";
 
 export const getChangeFeedIteratorOptions = (
   continuationToken?: string,
-  maxItemCount?: number
+  maxItemCount?: number,
 ): ChangeFeedIteratorOptions => ({
-  maxItemCount: maxItemCount && maxItemCount > 0 ? maxItemCount : 1,
   changeFeedStartFrom: continuationToken
     ? ChangeFeedStartFrom.Continuation(continuationToken)
     : ChangeFeedStartFrom.Beginning(),
+  maxItemCount: maxItemCount && maxItemCount > 0 ? maxItemCount : 1,
 });
 
 export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
-  leaseContainer: Container
+  leaseContainer: Container,
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(async () => {
     const changeFeedIterator = changeFeedContainer.items.getChangeFeedIterator(
-      changeFeedIteratorOptions
+      changeFeedIteratorOptions,
     );
     for await (const result of changeFeedIterator.getAsyncIterator()) {
       pipe(
@@ -41,8 +41,8 @@ export const processChangeFeed = (
               id: changeFeedContainer.id.replace(" ", "-"),
               lease: result.continuationToken,
             } as ContinuationTokenItem)(),
-          () => TE.right(constVoid)
-        )
+          () => TE.right(constVoid),
+        ),
       );
     }
   }, E.toError);

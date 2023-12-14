@@ -10,7 +10,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 
 export const getEventHubProducer = <T>(
-  connectionString: string
+  connectionString: string,
 ): E.Either<Error, KafkaProducerCompact<T>> =>
   pipe(
     AzureEventhubSasFromString.decode(connectionString),
@@ -18,11 +18,11 @@ export const getEventHubProducer = <T>(
     E.mapLeft((errors) =>
       pipe(
         defaultLog.either.error(
-          `Error during decoding EventHub ConnectionURI - ${errors}`
+          `Error during decoding EventHub ConnectionURI - ${errors}`,
         ),
-        () => new Error(`Error during decoding Event Hub SAS`)
-      )
-    )
+        () => new Error(`Error during decoding Event Hub SAS`),
+      ),
+    ),
   );
 
 export const sendMessageEventHub =
@@ -37,7 +37,7 @@ export const sendMessageEventHub =
           new Error(
             `Error during sending messages to Event Hub - ${sendFailureErrors
               .map((error) => error.message)
-              .join(", ")}`
-          )
-      )
+              .join(", ")}`,
+          ),
+      ),
     );

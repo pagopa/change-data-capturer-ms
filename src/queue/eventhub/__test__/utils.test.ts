@@ -30,7 +30,7 @@ describe("getEventHubProducer", () => {
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
-        new Error("Error during decoding Event Hub SAS")
+        new Error("Error during decoding Event Hub SAS"),
       );
     }
   });
@@ -53,7 +53,7 @@ const messages: ReadonlyArray<IMessageType> = [{ id: "1", message: "test" }];
 describe("sendMessageEventHub", () => {
   it("should send messages successfully", async () => {
     sendMessagingMock.mockReturnValue((_) =>
-      TE.rightTask(() => Promise.resolve(recordMetadata))
+      TE.rightTask(() => Promise.resolve(recordMetadata)),
     );
     const result = await sendMessageEventHub(mockMessagingClient)(messages)();
 
@@ -78,7 +78,7 @@ describe("sendMessageEventHub", () => {
       },
     ];
     sendMessagingMock.mockReturnValue((_) =>
-      TE.leftTask(() => Promise.resolve(storableSendFailureError))
+      TE.leftTask(() => Promise.resolve(storableSendFailureError)),
     );
 
     const result = await sendMessageEventHub(mockMessagingClient)(messages)();
@@ -87,8 +87,8 @@ describe("sendMessageEventHub", () => {
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
         new Error(
-          "Error during sending messages to Event Hub - Broker unavailable"
-        )
+          "Error during sending messages to Event Hub - Broker unavailable",
+        ),
       );
     }
   });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { defaultLog, useWinston, withConsole } from "@pagopa/winston-ts";
 
 useWinston(withConsole());

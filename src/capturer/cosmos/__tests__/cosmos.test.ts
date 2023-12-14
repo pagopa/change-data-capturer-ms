@@ -21,7 +21,7 @@ describe("getChangeFeedIteratorOptions", () => {
 
     const result = getChangeFeedIteratorOptions(
       continuationToken,
-      maxItemCount
+      maxItemCount,
     );
 
     expect(result).toEqual({
@@ -81,7 +81,7 @@ describe("getAndProcessChangeFeed", () => {
     const result = await processChangeFeed(
       mockProcessContainer,
       changeFeedIteratorOptions,
-      mockLeaseContainer
+      mockLeaseContainer,
     )();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -90,7 +90,7 @@ describe("getAndProcessChangeFeed", () => {
     }
 
     expect(
-      mockProcessContainer.items.getChangeFeedIterator
+      mockProcessContainer.items.getChangeFeedIterator,
     ).toHaveBeenCalledWith(changeFeedIteratorOptions);
     expect(mockLeaseContainer.items.upsert).toHaveBeenCalledWith({
       id: mockProcessContainer.id.replace(" ", "-"),
@@ -114,7 +114,7 @@ describe("getAndProcessChangeFeed", () => {
     const result = await processChangeFeed(
       mockProcessContainer,
       changeFeedIteratorOptions,
-      mockLeaseContainer
+      mockLeaseContainer,
     )();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -123,7 +123,7 @@ describe("getAndProcessChangeFeed", () => {
     }
 
     expect(
-      mockProcessContainer.items.getChangeFeedIterator
+      mockProcessContainer.items.getChangeFeedIterator,
     ).toHaveBeenCalledWith(changeFeedIteratorOptions);
     expect(mockLeaseContainer.items.upsert).toHaveBeenCalledTimes(0);
   });
@@ -142,7 +142,7 @@ describe("getAndProcessChangeFeed", () => {
     const result = await processChangeFeed(
       mockProcessContainer,
       changeFeedIteratorOptions,
-      mockLeaseContainer
+      mockLeaseContainer,
     )();
 
     expect(E.isLeft(result)).toBeTruthy();

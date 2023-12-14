@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -11,6 +12,15 @@ import {
 } from "../capturer/mongo/mongo";
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
+
+export const watchChangeFeed = (
+  collection: Collection,
+  resumeToken?: string,
+): E.Either<Error, void> =>
+  pipe(
+    watchMongoCollection(collection, resumeToken),
+    E.chain((watcher) => setMongoListenerOnEventChange(watcher, (_) => void 0)),
+  );
 
 export const mongoCDCService = {
   processChangeFeed:
@@ -52,12 +62,3 @@ export const mongoCDCService = {
         TE.map(constVoid),
       ),
 } satisfies ICDCService;
-
-export const watchChangeFeed = (
-  collection: Collection,
-  resumeToken?: string,
-): E.Either<Error, void> =>
-  pipe(
-    watchMongoCollection(collection, resumeToken),
-    E.chain((watcher) => setMongoListenerOnEventChange(watcher, (_) => void 0)),
-  );

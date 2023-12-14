@@ -13,57 +13,57 @@ const ContinuationTokenItem = T.type({
 export type ContinuationTokenItem = T.TypeOf<typeof ContinuationTokenItem>;
 export const cosmosConnect = (
   endpoint: string,
-  key: string
+  key: string,
 ): E.Either<Error, CosmosClient> =>
   pipe(
     E.tryCatch(
       () => new CosmosClient({ endpoint, key }),
       (reason) =>
-        new Error(`Impossible to connect to Cosmos: " ${String(reason)}`)
-    )
+        new Error(`Impossible to connect to Cosmos: " ${String(reason)}`),
+    ),
   );
 
 export const getDatabase = (
   client: CosmosClient,
-  databaseName: string
+  databaseName: string,
 ): E.Either<Error, Database> =>
   pipe(
     E.tryCatch(
       () => client.database(databaseName),
       (reason) =>
         new Error(
-          `Impossible to get database ${databaseName}: ${String(reason)}`
-        )
-    )
+          `Impossible to get database ${databaseName}: ${String(reason)}`,
+        ),
+    ),
   );
 
 export const getContainer = (
   database: Database,
-  containerName: string
+  containerName: string,
 ): TE.TaskEither<Error, Container> =>
   pipe(
     E.tryCatch(
       () => database.container(containerName),
       (reason) =>
         new Error(
-          `Impossible to get container ${containerName}: ${String(reason)}`
-        )
+          `Impossible to get container ${containerName}: ${String(reason)}`,
+        ),
     ),
-    TE.fromEither
+    TE.fromEither,
   );
 
 export const upsertItem = <T>(
   container: Container,
-  item: T
+  item: T,
 ): TE.TaskEither<Error, void> =>
   pipe(
     TE.tryCatch(() => container.items.upsert(item), E.toError),
-    TE.map(constVoid)
+    TE.map(constVoid),
   );
 
 export const getItemByID = (
   container: Container,
-  id: string
+  id: string,
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>
   pipe(
     TE.tryCatch(
@@ -72,10 +72,10 @@ export const getItemByID = (
         new Error(
           `Impossible to get item ${id} from container ${
             container.id
-          }: ${String(reason)}`
-        )
+          }: ${String(reason)}`,
+        ),
     ),
     TE.map((resp) =>
-      pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither)
-    )
+      pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither),
+    ),
   );

@@ -34,7 +34,7 @@ describe("cosmosDBService", () => {
 
   it("should handle connection error", async () => {
     cosmosConnectSpy.mockImplementationOnce(() =>
-      left(new Error("Connection error"))
+      left(new Error("Connection error")),
     );
     const result = await cosmosDBService.connect({
       connection: "invalid-connection",
@@ -47,7 +47,7 @@ describe("cosmosDBService", () => {
     getDatabaseSpy.mockImplementationOnce(() => right(mockDatabase));
     const result = cosmosDBService.getDatabase(
       mockCosmosClient,
-      "test-database"
+      "test-database",
     );
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockDatabase));
@@ -55,11 +55,11 @@ describe("cosmosDBService", () => {
 
   it("should handle error when getting database", () => {
     getDatabaseSpy.mockImplementationOnce(() =>
-      left(new Error("Database error"))
+      left(new Error("Database error")),
     );
     const result = cosmosDBService.getDatabase(
       mockCosmosClient,
-      "invalid-database"
+      "invalid-database",
     );
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Database error")));
@@ -69,7 +69,7 @@ describe("cosmosDBService", () => {
     getContainerSpy.mockImplementationOnce(() => TE.right(mockContainer));
     const result = await cosmosDBService.getResource(
       mockDatabase,
-      "test-container"
+      "test-container",
     )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockContainer));
@@ -77,11 +77,11 @@ describe("cosmosDBService", () => {
 
   it("should handle error when getting resource", async () => {
     getContainerSpy.mockImplementationOnce(() =>
-      TE.left(new Error("Container error"))
+      TE.left(new Error("Container error")),
     );
     const result = await cosmosDBService.getResource(
       mockDatabase,
-      "invalid-container"
+      "invalid-container",
     )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Container error")));
@@ -89,7 +89,7 @@ describe("cosmosDBService", () => {
 
   it("should get item by id succesfully", async () => {
     getItemByIDSpy.mockImplementationOnce(() =>
-      TE.right(O.fromNullable(mockItem))
+      TE.right(O.fromNullable(mockItem)),
     );
     const result = await cosmosDBService.getItemByID(mockContainer, "testID")();
     expect(E.isRight(result)).toBeTruthy();
@@ -98,7 +98,7 @@ describe("cosmosDBService", () => {
 
   it("should handle error when getting item by id", async () => {
     getItemByIDSpy.mockImplementationOnce(() =>
-      TE.left(new Error("Item error"))
+      TE.left(new Error("Item error")),
     );
     const result = await cosmosDBService.getItemByID(mockContainer, "testID")();
     expect(E.isLeft(result)).toBeTruthy();

@@ -19,11 +19,11 @@ export interface IDatabaseService {
   readonly getDatabase: (client: DBClient, name: string) => Either<Error, DB>;
   readonly getResource: (
     database: DB,
-    resourceName: string
+    resourceName: string,
   ) => TaskEither<Error, Resource>;
   readonly getItemByID: (
     resource: Resource,
-    id: string
+    id: string,
   ) => TaskEither<Error, O.Option<Item>>;
 }
 
@@ -33,6 +33,6 @@ export interface ICDCService {
     database: string,
     resource: string,
     leaseResource?: string,
-    prefix?: string
+    prefix?: string,
   ) => (DBServiceClient: IDatabaseService) => TaskEither<Error, void>;
 }

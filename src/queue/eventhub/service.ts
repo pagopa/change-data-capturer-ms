@@ -8,7 +8,7 @@ import { getEventHubProducer, sendMessageEventHub } from "./utils";
 export type QueueProducer<T> = KafkaProducerCompact<T>;
 export interface IQueueService {
   readonly produce: <T>(
-    messages: ReadonlyArray<T>
+    messages: ReadonlyArray<T>,
   ) => TE.TaskEither<Error, void>;
 }
 
@@ -17,9 +17,9 @@ export const eventHubService = {
 };
 
 export const createEventHubService = (
-  connectionString: string
+  connectionString: string,
 ): E.Either<Error, IQueueService> =>
   pipe(
     getEventHubProducer(connectionString),
-    E.map((producer) => ({ produce: sendMessageEventHub(producer) }))
+    E.map((producer) => ({ produce: sendMessageEventHub(producer) })),
   );

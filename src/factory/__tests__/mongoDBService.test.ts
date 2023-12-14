@@ -36,7 +36,7 @@ describe("mongoDBService", () => {
 
   it("should handle connection error", async () => {
     mongoConnectSpy.mockImplementationOnce(() =>
-      TE.left(new Error("Connection error"))
+      TE.left(new Error("Connection error")),
     );
     const result = await mongoDBService.connect({
       connection: "invalid-connection",
@@ -54,11 +54,11 @@ describe("mongoDBService", () => {
 
   it("should handle error when getting database", () => {
     getMongoDbSpy.mockImplementationOnce(() =>
-      left(new Error("Database error"))
+      left(new Error("Database error")),
     );
     const result = mongoDBService.getDatabase(
       mockMongoClient,
-      "invalid-database"
+      "invalid-database",
     );
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Database error")));
@@ -66,11 +66,11 @@ describe("mongoDBService", () => {
 
   it("should get resource successfully", async () => {
     getMongoCollectionSpy.mockImplementationOnce(() =>
-      TE.right(mockCollection)
+      TE.right(mockCollection),
     );
     const result = await mongoDBService.getResource(
       mockDatabase,
-      "test-collection"
+      "test-collection",
     )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockCollection));
@@ -78,11 +78,11 @@ describe("mongoDBService", () => {
 
   it("should handle error when getting resource", async () => {
     getMongoCollectionSpy.mockImplementationOnce(() =>
-      TE.left(new Error("Container error"))
+      TE.left(new Error("Container error")),
     );
     const result = await mongoDBService.getResource(
       mockDatabase,
-      "invalid-collection"
+      "invalid-collection",
     )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Container error")));
@@ -90,7 +90,7 @@ describe("mongoDBService", () => {
 
   it("should get item by id succesfully", async () => {
     findDocumentByIDSpy.mockImplementationOnce(() =>
-      TE.right(O.fromNullable(mockItem))
+      TE.right(O.fromNullable(mockItem)),
     );
     const result = await mongoDBService.getItemByID(mockCollection, "testID")();
     expect(E.isRight(result)).toBeTruthy();
@@ -99,7 +99,7 @@ describe("mongoDBService", () => {
 
   it("should handle error when getting item by id", async () => {
     findDocumentByIDSpy.mockImplementationOnce(() =>
-      TE.left(new Error("Item error"))
+      TE.left(new Error("Item error")),
     );
     const result = await mongoDBService.getItemByID(mockCollection, "testID")();
     expect(E.isLeft(result)).toBeTruthy();

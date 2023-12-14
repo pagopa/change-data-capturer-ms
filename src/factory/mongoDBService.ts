@@ -11,6 +11,6 @@ export const mongoDBService = {
   connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
     mongoConnect(config.connection),
   getDatabase: getMongoDb,
-  getResource: getMongoCollection,
   getItemByID: findDocumentByID,
+  getResource: getMongoCollection,
 } satisfies IDatabaseService;

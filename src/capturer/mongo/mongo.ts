@@ -14,7 +14,7 @@ export const watchMongoCollection = <T = Document>(
   resumeToken: string,
   params = {
     fullDocument: "updateLookup",
-  }
+  },
 ): E.Either<Error, ChangeStream<T, ChangeStreamDocument<T>>> =>
   pipe(
     resumeToken,
@@ -39,26 +39,26 @@ export const watchMongoCollection = <T = Document>(
               {
                 $project: {
                   _id: 1,
+                  documentKey: 1,
                   fullDocument: 1,
                   ns: 1,
-                  documentKey: 1,
                 },
               },
             ],
-            watchParams
+            watchParams,
           ),
         (reason) =>
           new Error(
-            `Impossible to watch the ${collection.collectionName} collection: " ${reason}`
-          )
-      )
+            `Impossible to watch the ${collection.collectionName} collection: " ${reason}`,
+          ),
+      ),
   );
 
 export const setMongoListenerOnEventChange = <T extends Document>(
   changeStream: ChangeStream<T, ChangeStreamDocument<T>>,
-  listener: (change: ChangeStreamDocument<T>) => void
+  listener: (change: ChangeStreamDocument<T>) => void,
 ): E.Either<Error, void> =>
   E.tryCatch(
     () => void changeStream.on("change", listener),
-    (reason) => new Error(`Impossible to set the listener: " ${reason}`)
+    (reason) => new Error(`Impossible to set the listener: " ${reason}`),
   );
