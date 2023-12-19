@@ -3,7 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
-import { constVoid, pipe } from "fp-ts/lib/function";
+import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import { Collection, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../capturer/cosmos/utils";
 import {
@@ -50,13 +50,17 @@ export const mongoCDCService = {
         TE.chain(({ collection, leaseDocument }) =>
           pipe(
             leaseDocument,
-            O.fold(
-              () => TE.fromEither(watchChangeFeed(collection)),
-              (token) =>
-                pipe(token as ContinuationTokenItem, (leaseToken) =>
-                  TE.fromEither(watchChangeFeed(collection, leaseToken.lease)),
-                ),
+            O.map(
+              flow(
+                ContinuationTokenItem.decode,
+                E.mapLeft((errs) => Error(String(errs.join("|")))),
+                E.map((leaseToken) => leaseToken.lease),
+                O.fromEither,
+              ),
             ),
+            O.flatten,
+            O.toUndefined,
+            (lease) => TE.fromEither(watchChangeFeed(collection, lease)),
           ),
         ),
         TE.map(constVoid),
