@@ -12,7 +12,6 @@ import {
 import * as E from "fp-ts/Either";
 import * as B from "fp-ts/boolean";
 import { pipe } from "fp-ts/lib/function";
-import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 
 describe("DataSource", () => {
   const aProperDatasourceConfig = {
