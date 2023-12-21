@@ -5,6 +5,7 @@ import {
 import * as t from "io-ts";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { IsoDateFromString } from "@pagopa/ts-commons/lib/dates";
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 
 export const CosmosDBType = t.literal("CosmosDB");
 export type CosmosDBType = t.TypeOf<typeof CosmosDBType>;
@@ -37,9 +38,9 @@ export const CommonDocumentDbCdcProps = t.intersection([
   t.type({
     collectionName: NonEmptyString,
     dbName: NonEmptyString,
-    leaseContainerName: NonEmptyString,
   }),
   t.partial({
+    leaseContainerName: NonEmptyString,
     leaseContainerPrefix: NonEmptyString,
   }),
 ]);
@@ -111,9 +112,14 @@ export const CDCDataSource = t.union([
 ]);
 export type CDCDataSource = t.TypeOf<typeof CDCDataSource>;
 
+const DEFAULT_PAGE_SIZE = 100 as unknown as number &
+  WithinRangeInteger<1, 1000>;
+
+const DEFAULT_LIMIT = 100 as NonNegativeInteger;
+
 export const CommonDbSelectAllProps = t.type({
   dbName: NonEmptyString,
-  pageSize: WithinRangeInteger(1, 1000),
+  pageSize: withDefault(WithinRangeInteger(1, 1000), DEFAULT_PAGE_SIZE),
   resourceName: NonEmptyString,
 });
 export type CommonDbSelectAllProps = t.TypeOf<typeof CommonDbSelectAllProps>;
@@ -121,7 +127,7 @@ export type CommonDbSelectAllProps = t.TypeOf<typeof CommonDbSelectAllProps>;
 export const CommonDbSelectAllWithLimitProps = t.intersection([
   CommonDbSelectAllProps,
   t.type({
-    limit: NonNegativeInteger,
+    limit: withDefault(NonNegativeInteger, DEFAULT_LIMIT),
   }),
 ]);
 export type CommonDbSelectAllWithLimitProps = t.TypeOf<

@@ -117,6 +117,23 @@ describe("SelectAllDatasource", () => {
     },
   };
 
+  const aCosmosSelectAllDatasourceConfigWithoutDefaultValues = {
+    dbType: "CosmosDB" as CosmosDBType,
+    sourceType: "SELECT_ALL" as SelectAllConnectionSourceType,
+    props: {
+      dbName: "dbName" as NonEmptyString,
+      resourceName: "resourceName",
+    },
+  };
+
+  const expectedDecodedCosmosSelectAllDatasourceConfigWithDefaultValues = {
+    ...aCosmosSelectAllDatasourceConfigWithoutDefaultValues,
+    props: {
+      ...aCosmosSelectAllDatasourceConfigWithoutDefaultValues.props,
+      pageSize: 100,
+    },
+  };
+
   const aMongoSelectAllDataSourceConfig = {
     ...aCosmosSelectAllDatasourceConfig,
     dbType: "MongoDB" as MongoDBType,
@@ -126,18 +143,33 @@ describe("SelectAllDatasource", () => {
     },
   };
 
+  const aMongoSelectAllDataSourceConfigWithoutDefaultValues = {
+    ...aCosmosSelectAllDatasourceConfig,
+    dbType: "MongoDB" as MongoDBType,
+  };
+
+  const expectedDecodedMongoSelectAllDataSourceConfigWithDefaultValues = {
+    ...aMongoSelectAllDataSourceConfigWithoutDefaultValues,
+    props: {
+      ...aMongoSelectAllDataSourceConfigWithoutDefaultValues.props,
+      limit: 100,
+    },
+  };
+
   const aPostgreSelectAllDatasourceConfig = {
     ...aMongoSelectAllDataSourceConfig,
     dbType: "PostgreSQL" as PostgreSQLDBType,
   };
 
   it.each`
-    description                                                               | input                                | success
-    ${"should decode a correct Cosmos SelectAllDatasource config properly"}   | ${aCosmosSelectAllDatasourceConfig}  | ${true}
-    ${"should decode a correct Mongo SelectAllDatasource config properly"}    | ${aMongoSelectAllDataSourceConfig}   | ${true}
-    ${"should decode a correct Postgres SelectAllDatasource config properly"} | ${aPostgreSelectAllDatasourceConfig} | ${true}
-    ${"should fail with an empty Datasource config"}                          | ${{}}                                | ${false}
-  `("$description", ({ input, success }) => {
+    description                                                                          | input                                                   | expected                                                           | success
+    ${"should decode a correct Cosmos SelectAllDatasource config properly"}              | ${aCosmosSelectAllDatasourceConfig}                     | ${aCosmosSelectAllDatasourceConfig}                                | ${true}
+    ${"should decode a correct Cosmos SelectAllDatasource with default values properly"} | ${aCosmosSelectAllDatasourceConfigWithoutDefaultValues} | ${expectedDecodedCosmosSelectAllDatasourceConfigWithDefaultValues} | ${true}
+    ${"should decode a correct Mongo SelectAllDatasource config properly"}               | ${aMongoSelectAllDataSourceConfig}                      | ${aMongoSelectAllDataSourceConfig}                                 | ${true}
+    ${"should decode a correct Mongo SelectAllDatasource with default values properly"}  | ${aMongoSelectAllDataSourceConfigWithoutDefaultValues}  | ${expectedDecodedMongoSelectAllDataSourceConfigWithDefaultValues}  | ${true}
+    ${"should decode a correct Postgres SelectAllDatasource config properly"}            | ${aPostgreSelectAllDatasourceConfig}                    | ${aPostgreSelectAllDatasourceConfig}                               | ${true}
+    ${"should fail with an empty Datasource config"}                                     | ${{}}                                                   | ${{}}                                                              | ${false}
+  `("$description", ({ input, expected, success }) => {
     pipe(input, SelectAllDataSource.decode, (eitherDecoded) =>
       pipe(
         success,
@@ -155,7 +187,7 @@ describe("SelectAllDatasource", () => {
           () =>
             pipe(
               eitherDecoded,
-              E.map((decoded) => expect(decoded).toEqual(input)),
+              E.map((decoded) => expect(decoded).toEqual(expected)),
               E.mapLeft(() =>
                 fail("Cannot decode a correct SelectAllDatasource"),
               ),
