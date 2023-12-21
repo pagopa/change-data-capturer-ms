@@ -26,6 +26,7 @@
     "@azure/cosmos": "^4.0.0",
     "@pagopa/fp-ts-kafkajs": "^0.3.0",
     "@pagopa/winston-ts": "^2.2.0",
+    "@pagopa/ts-commons": "^12.4.1",
     "fp-ts": "^2.16.1",
     "io-ts": "^2.2.21",
     "io-ts-types": "^0.5.19",
