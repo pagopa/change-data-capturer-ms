@@ -5,19 +5,18 @@ import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import * as T from "io-ts";
 
-const ContinuationTokenItem = T.type({
+export const ContinuationTokenItem = T.type({
   id: T.string,
   lease: T.string,
 });
 
 export type ContinuationTokenItem = T.TypeOf<typeof ContinuationTokenItem>;
 export const cosmosConnect = (
-  endpoint: string,
-  key: string,
+  connectionString: string,
 ): E.Either<Error, CosmosClient> =>
   pipe(
     E.tryCatch(
-      () => new CosmosClient({ endpoint, key }),
+      () => new CosmosClient(connectionString),
       (reason) =>
         new Error(`Impossible to connect to Cosmos: " ${String(reason)}`),
     ),

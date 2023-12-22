@@ -10,7 +10,7 @@ import { DBClient, IDatabaseConfig, IDatabaseService } from "./service";
 
 export const cosmosDBService = {
   connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
-    pipe(cosmosConnect(config.connection, config.connection), TE.fromEither),
+    pipe(cosmosConnect(config.connection), TE.fromEither),
   getDatabase,
   getItemByID,
   getResource: getContainer,
