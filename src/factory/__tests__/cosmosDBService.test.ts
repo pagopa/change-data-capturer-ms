@@ -1,4 +1,9 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import {
+  Container,
+  CosmosClient,
+  CosmosClientOptions,
+  Database,
+} from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -9,6 +14,10 @@ import { cosmosDBService } from "../cosmosDBService";
 const mockCosmosClient: CosmosClient = {
   databases: jest.fn(),
 } as unknown as CosmosClient;
+const mockCosmosConfig: CosmosClientOptions = {
+  endpoint: "your-endpoint",
+  key: "your.key",
+} as unknown as CosmosClientOptions;
 const mockDatabase: Database = {} as Database;
 const mockContainer: Container = {} as Container;
 const mockItem: CosmosUtils.ContinuationTokenItem = {
@@ -17,6 +26,7 @@ const mockItem: CosmosUtils.ContinuationTokenItem = {
 
 jest.mock("../../capturer/cosmos/utils");
 
+const getCosmosConfigSpy = jest.spyOn(CosmosUtils, "getCosmosConfig");
 const cosmosConnectSpy = jest.spyOn(CosmosUtils, "cosmosConnect");
 const getDatabaseSpy = jest.spyOn(CosmosUtils, "getDatabase");
 const getContainerSpy = jest.spyOn(CosmosUtils, "getContainer");
@@ -25,14 +35,17 @@ const getItemByIDSpy = jest.spyOn(CosmosUtils, "getItemByID");
 describe("cosmosDBService", () => {
   it("should connect to Cosmos successfully", async () => {
     cosmosConnectSpy.mockImplementationOnce(() => right(mockCosmosClient));
+    getCosmosConfigSpy.mockImplementationOnce(() => right(mockCosmosConfig));
     const result = await cosmosDBService.connect({
-      connection: "valid-connection",
+      connection: "valid-string-connection",
     })();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockCosmosClient));
   });
 
   it("should handle connection error", async () => {
+    getCosmosConfigSpy.mockImplementationOnce(() => right(mockCosmosConfig));
+
     cosmosConnectSpy.mockImplementationOnce(() =>
       left(new Error("Connection error")),
     );

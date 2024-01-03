@@ -19,6 +19,7 @@ export const cosmosDBService = {
         cosmosConnect(connectionString.endpoint, connectionString.key),
       ),
       TE.fromEither,
+      TE.mapLeft((e) => new Error(e.message)),
     ),
   getDatabase,
   getItemByID,
