@@ -1,8 +1,11 @@
+import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/lib/TaskEither";
+
 import { pipe } from "fp-ts/lib/function";
 import {
   cosmosConnect,
   getContainer,
+  getCosmosConfig,
   getDatabase,
   getItemByID,
 } from "../capturer/cosmos/utils";
@@ -10,7 +13,13 @@ import { DBClient, IDatabaseConfig, IDatabaseService } from "./service";
 
 export const cosmosDBService = {
   connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
-    pipe(cosmosConnect(config.connection, config.connection), TE.fromEither),
+    pipe(
+      getCosmosConfig(config.connection),
+      E.chain((connectionString) =>
+        cosmosConnect(connectionString.endpoint, connectionString.key),
+      ),
+      TE.fromEither,
+    ),
   getDatabase,
   getItemByID,
   getResource: getContainer,

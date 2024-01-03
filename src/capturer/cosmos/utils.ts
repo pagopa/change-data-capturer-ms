@@ -1,4 +1,9 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import {
+  Container,
+  CosmosClient,
+  CosmosClientOptions,
+  Database,
+} from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -11,6 +16,27 @@ const ContinuationTokenItem = T.type({
 });
 
 export type ContinuationTokenItem = T.TypeOf<typeof ContinuationTokenItem>;
+
+const cosmosConnectionRegex = (s: string): RegExpExecArray | null =>
+  /AccountEndpoint=([^;]+);AccountKey=([^;]+)/.exec(s);
+
+export const getCosmosConfig = (
+  connectionString: string,
+): E.Either<Error, CosmosClientOptions> =>
+  pipe(
+    connectionString,
+    cosmosConnectionRegex,
+    O.fromNullable,
+    E.fromOption(
+      () => "cosmos connection string does not match the expected format",
+    ),
+    E.mapLeft((message) => new Error(message)),
+    E.map((groups) => ({
+      endpoint: groups[1],
+      key: groups[2],
+    })),
+  );
+
 export const cosmosConnect = (
   endpoint: string,
   key: string,
@@ -59,6 +85,13 @@ export const upsertItem = <T>(
   pipe(
     TE.tryCatch(() => container.items.upsert(item), E.toError),
     TE.map(constVoid),
+    TE.mapLeft((err) => {
+      // eslint-disable-next-line no-console
+      console.error(`Errore durante l'upsert dell'item: ${err.message}`);
+      // eslint-disable-next-line no-console
+      console.error("Dettagli dell'errore:", err);
+      return err;
+    }),
   );
 
 export const getItemByID = (

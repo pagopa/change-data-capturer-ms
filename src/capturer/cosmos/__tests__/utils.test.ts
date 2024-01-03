@@ -7,6 +7,7 @@ import * as O from "fp-ts/Option";
 import {
   cosmosConnect,
   getContainer,
+  getCosmosConfig,
   getDatabase,
   getItemByID,
   upsertItem,
@@ -237,5 +238,31 @@ describe("upsertItem", () => {
     });
 
     expect(E.isLeft(result)).toBeTruthy();
+  });
+});
+
+describe("getCosmosConfig", () => {
+  test("should parse valid connection string", () => {
+    const connectionString =
+      "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;";
+
+    const expectedConfig = {
+      endpoint: "https://localhost:8081/",
+      key: "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+    };
+
+    const result = getCosmosConfig(connectionString);
+
+    expect(result).toEqual(E.right(expectedConfig));
+  });
+
+  test("should handle invalid connection string", () => {
+    const invalidConnectionString = "InvalidConnectionString";
+
+    const result = getCosmosConfig(invalidConnectionString);
+
+    const expectedError = new Error("input does not match the expected format");
+
+    expect(result).toEqual(E.left(expectedError));
   });
 });

@@ -44,3 +44,13 @@ jobs:
 
       - name: 'Code review'
         run: yarn run code-review
+      
+      - name: Integration test
+        run: |
+          cd __integrations__
+          yarn install --immutable
+          yarn start &
+          sleep 5 # Attendi che l'app di integrazione si avvii
+          yarn test
+          yarn stop
+        
