@@ -51,6 +51,11 @@ jobs:
       - name: Set env
         run: echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
 
+      - name: Debug Cosmos DB connectivity
+        run: |
+          echo "Trying to reach Cosmos DB service..."
+          nc -zv cosmosdb 8081
+
       - name: Integration test
         run: |
           cd __integrations__
