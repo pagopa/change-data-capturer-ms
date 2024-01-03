@@ -54,7 +54,7 @@ jobs:
       - name: Debug Cosmos DB connectivity
         run: |
           echo "Trying to reach Cosmos DB service..."
-          nc -zv cosmosdb 8081
+          nc -zv azure.cosmosdb 8081
 
       - name: Integration test
         run: |
