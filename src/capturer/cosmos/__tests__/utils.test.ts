@@ -30,29 +30,27 @@ describe("cosmosConnect", () => {
   });
 
   it("should connect to Cosmos successfully", async () => {
-    const endpoint = "your-endpoint";
-    const key = "your-key";
+    const connString = "your-conn-string";
 
     (CosmosClient as jest.Mock).mockImplementationOnce(() => mockCosmosClient);
 
-    const result = cosmosConnect(endpoint, key);
+    const result = cosmosConnect(connString);
 
-    expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
+    expect(CosmosClient).toHaveBeenCalledWith(connString);
     expect(result).toEqual(E.right(mockCosmosClient));
   });
 
   it("should handle connection error", async () => {
-    const endpoint = "invalid-endpoint";
-    const key = "invalid-key";
+    const connString = "invalid-endpoint";
 
     (CosmosClient as jest.Mock).mockImplementationOnce(() => {
       {
         throw error;
       }
     });
-    const result = cosmosConnect(endpoint, key);
+    const result = cosmosConnect(connString);
 
-    expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
+    expect(CosmosClient).toHaveBeenCalledWith(connString);
     expect(result).toEqual(
       E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`)),
     );
