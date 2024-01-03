@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 2
             
       - name: Docker Compose
-        run: docker compose -p __integrations__ up -d --build 
+        run: docker compose -p integrations up -d --build 
 
       - name: Setup Node.js environment
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c #v3.6.0
@@ -54,7 +54,7 @@ jobs:
       - name: Debug Cosmos DB connectivity
         run: |
           echo "Trying to reach Cosmos DB service..."
-          docker ps -p __integrations__
+          docker ps -p integrations
           nc -zv azure-cosmosdb-emulator 8081
           COSMOS_DB_IP=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' azure-cosmosdb-emulator)
           echo "COSMOS_DB_IP=$COSMOS_DB_IP" >> $GITHUB_ENV
