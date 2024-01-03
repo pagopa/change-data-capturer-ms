@@ -6,14 +6,10 @@
   "keywords": [],
   "author": "",
   "scripts": {
-    "prestart": "npm-run-all generate-env",
     "start": "docker-compose up -d",
     "stop": "docker-compose down",
-    "stop:all": "docker-compose --env-file environments/.env down && docker image prune -a -f && docker volume prune -f",
-    "test": "jest",
-    "generate:env:cosmosdb": "dotenv -e environments/.env envsub environments/env.cosmosdb environments/generated/env.cosmosdb",
-    "clean": "shx rm -rf environments/generated && shx mkdir environments/generated",
-    "generate-env": "npm-run-all generate:env:*"
+    "stop:all": "docker-compose down && docker image prune -a -f && docker volume prune -f",
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "dotenv": "^16.3.1"
