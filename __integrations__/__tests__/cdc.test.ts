@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 
 import { Container, CosmosClient, Database } from "@azure/cosmos";
 import { pipe } from "fp-ts/lib/function";
-import { createDatabaseService, ServiceType } from "../..";
+import { createDatabaseService, ServiceType } from "../../index";
 import { getCosmosConfig } from "../../src/capturer/cosmos/utils";
 import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../env";
 import {
