@@ -54,7 +54,9 @@ jobs:
       - name: Debug Cosmos DB connectivity
         run: |
           echo "Trying to reach Cosmos DB service..."
-          nc -zv 127.0.0.1 8081
+          COSMOS_DB_IP=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' azure-cosmosdb-emulator)
+          echo "COSMOS_DB_IP=$COSMOS_DB_IP" >> $GITHUB_ENV
+          echo $COSMOS_DB_IP
 
       - name: Integration test
         run: |
