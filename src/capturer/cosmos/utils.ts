@@ -85,13 +85,6 @@ export const upsertItem = <T>(
   pipe(
     TE.tryCatch(() => container.items.upsert(item), E.toError),
     TE.map(constVoid),
-    TE.mapLeft((err) => {
-      // eslint-disable-next-line no-console
-      console.error(`Errore durante l'upsert dell'item: ${err.message}`);
-      // eslint-disable-next-line no-console
-      console.error("Dettagli dell'errore:", err);
-      return err;
-    }),
   );
 
 export const getItemByID = (

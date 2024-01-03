@@ -29,28 +29,27 @@ describe("cosmosConnect", () => {
     jest.clearAllMocks();
   });
 
-  it("should connect to Cosmos successfully", async () => {
-    const connString = "your-conn-string";
+  const endpoint = "your-endpoint";
+  const key = "your-key";
 
+  it("should connect to Cosmos successfully", async () => {
     (CosmosClient as jest.Mock).mockImplementationOnce(() => mockCosmosClient);
 
-    const result = cosmosConnect(connString);
+    const result = cosmosConnect(endpoint, key);
 
-    expect(CosmosClient).toHaveBeenCalledWith(connString);
+    expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(E.right(mockCosmosClient));
   });
 
   it("should handle connection error", async () => {
-    const connString = "invalid-endpoint";
-
     (CosmosClient as jest.Mock).mockImplementationOnce(() => {
       {
         throw error;
       }
     });
-    const result = cosmosConnect(connString);
+    const result = cosmosConnect(endpoint, key);
 
-    expect(CosmosClient).toHaveBeenCalledWith(connString);
+    expect(CosmosClient).toHaveBeenCalledWith({ endpoint, key });
     expect(result).toEqual(
       E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`)),
     );
@@ -259,7 +258,9 @@ describe("getCosmosConfig", () => {
 
     const result = getCosmosConfig(invalidConnectionString);
 
-    const expectedError = new Error("input does not match the expected format");
+    const expectedError = new Error(
+      "cosmos connection string does not match the expected format",
+    );
 
     expect(result).toEqual(E.left(expectedError));
   });
