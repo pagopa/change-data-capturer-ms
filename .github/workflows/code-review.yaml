@@ -24,6 +24,9 @@ jobs:
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
         with:
           fetch-depth: 2
+            
+      - name: Docker Compose
+        run: docker compose up -d --build
 
       - name: Setup Node.js environment
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c #v3.6.0
@@ -47,9 +50,6 @@ jobs:
 
       - name: Set env
         run: echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
-      
-      - name: Docker Compose
-        run: docker compose up -d
 
       - name: Integration test
         run: |
