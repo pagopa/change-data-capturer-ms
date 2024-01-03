@@ -47,13 +47,16 @@ jobs:
 
       - name: Set env
         run: echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
-        
+      
+      - name: Docker Compose
+        run: docker compose up -d
+
       - name: Integration test
         run: |
           cd __integrations__
           yarn install --immutable
-          yarn start &
-          sleep 5 # Attendi che l'app di integrazione si avvii
           yarn test
-          yarn stop
+
+      - name: Docker Compose
+        run: docker compose down
         
