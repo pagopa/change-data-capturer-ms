@@ -17,7 +17,7 @@ on:
 jobs:
   code_review:
     timeout-minutes: 10 # temp fix
-    runs-on: windows-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - name: Check out code
