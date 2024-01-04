@@ -56,6 +56,7 @@ jobs:
         run: |
           echo "Trying to reach Cosmos DB service..."
           docker ps -a
+          docker logs azure-cosmosdb-emulator
           nc -zv 0.0.0.0 8081 || true
           nc -zv localhost 8081 || true
           nc -zv azure.cosmosdb 8081 || true
