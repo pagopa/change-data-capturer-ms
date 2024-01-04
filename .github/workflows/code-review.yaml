@@ -68,7 +68,8 @@ jobs:
           cd __integrations__
           yarn install --immutable
           yarn test
+          cd ..
 
       - name: Docker Compose
-        run: docker compose down
+        run: docker compose -f __integrations__/docker-compose.yml down
         

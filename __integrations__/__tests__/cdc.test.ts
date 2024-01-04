@@ -26,7 +26,7 @@ beforeAll(async () => {
       ),
     ),
     TE.getOrElse((e) => {
-      throw Error("Cannot create db");
+      throw Error(`Cannot create db ${JSON.stringify(e)}`);
     }),
   )();
 });
