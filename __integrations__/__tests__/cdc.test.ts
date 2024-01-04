@@ -32,7 +32,7 @@ beforeAll(async () => {
       throw Error(`Cannot create db ${JSON.stringify(e)}`);
     }),
   )();
-});
+}, 60000);
 
 describe("Cosmos connection", () => {
   it("should return error when trying to connect to a not valid cosmos endpoint", async () => {
