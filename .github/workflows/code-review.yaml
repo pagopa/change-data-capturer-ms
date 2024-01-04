@@ -68,6 +68,8 @@ jobs:
         run: |
           cd __integrations__
           yarn install --immutable
+          docker logs azure-cosmosdb-emulator
+          nc -zv 0.0.0.0 8081 || true
           yarn test
           cd ..
 
