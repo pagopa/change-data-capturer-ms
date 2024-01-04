@@ -24,15 +24,16 @@ jobs:
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
         with:
           fetch-depth: 2
-            
-      - name: Docker Compose
-        run: docker compose -p integrations up -d --build 
 
       - name: Setup Node.js environment
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c #v3.6.0
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
+            
+      - name: Docker Compose
+        run: |
+          docker compose -f __integrations__/docker-compose.yml up -d
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -54,7 +55,7 @@ jobs:
       - name: Debug Cosmos DB connectivity
         run: |
           echo "Trying to reach Cosmos DB service..."
-          docker ps -p integrations
+          docker ps -a
           nc -zv azure-cosmosdb-emulator 8081
           COSMOS_DB_IP=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' azure-cosmosdb-emulator)
           echo "COSMOS_DB_IP=$COSMOS_DB_IP" >> $GITHUB_ENV
