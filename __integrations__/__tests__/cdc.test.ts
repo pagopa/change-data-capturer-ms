@@ -16,6 +16,9 @@ import {
 const service = createDatabaseService(ServiceType.Cosmos);
 
 beforeAll(async () => {
+  console.info(
+    `Initializing App - CosmosDB ${COSMOSDB_CONNECTION_STRING} - ${COSMOSDB_NAME}`,
+  );
   await pipe(
     getCosmosConfig(COSMOSDB_CONNECTION_STRING),
     TE.fromEither,
