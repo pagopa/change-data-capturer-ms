@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
-import { Collection, MongoClient } from "mongodb";
+import { Collection } from "mongodb";
 import { ContinuationTokenItem } from "../capturer/cosmos/utils";
 import {
   setMongoListenerOnEventChange,
@@ -25,7 +25,7 @@ export const watchChangeFeed = (
 export const mongoCDCService = {
   processChangeFeed:
     (
-      client: MongoClient,
+      connectionString: string,
       database: string,
       resource: string,
       leaseResource?: string,
@@ -33,11 +33,13 @@ export const mongoCDCService = {
     ) =>
     (mongoDBServiceClient: typeof mongoDBService): TaskEither<Error, void> =>
       pipe(
-        E.Do,
-        E.bind("database", () =>
+        TE.Do,
+        TE.bind("client", () =>
+          mongoDBServiceClient.connect({ connection: connectionString }),
+        ),
+        TE.bind("database", ({ client }) =>
           mongoDBServiceClient.getDatabase(client, database),
         ),
-        TE.fromEither,
         TE.bind("collection", ({ database }) =>
           mongoDBServiceClient.getResource(database, resource),
         ),
@@ -60,7 +62,8 @@ export const mongoCDCService = {
             ),
             O.flatten,
             O.toUndefined,
-            (lease) => TE.fromEither(watchChangeFeed(collection, lease)),
+            (lease) =>
+              TE.fromEither(watchChangeFeed(collection as Collection, lease)),
           ),
         ),
         TE.map(constVoid),

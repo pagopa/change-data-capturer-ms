@@ -51,7 +51,7 @@ describe("cosmosCDCService", () => {
       changeFeedStartFrom: ChangeFeedStartFrom.Continuation("test"),
     });
     const result = await cosmosCDCService.processChangeFeed(
-      mockCosmosClient,
+      "connection-string",
       "test-database",
       "test-container",
       "test-lease-container",
@@ -81,7 +81,7 @@ describe("cosmosCDCService", () => {
     });
 
     const result = await cosmosCDCService.processChangeFeed(
-      mockCosmosClient,
+      "connection-string",
       "test-database",
       "test-container",
       "test-lease-container",
@@ -107,7 +107,7 @@ describe("cosmosCDCService", () => {
     );
 
     const result = await cosmosCDCService.processChangeFeed(
-      mockCosmosClient,
+      "connection-string",
       "invalid-database",
       "invalid-container",
     )(mockDBServiceClient)();

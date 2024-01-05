@@ -11,6 +11,7 @@ import { pipe } from "fp-ts/lib/function";
 import { upsertItem } from "../../src/capturer/cosmos/utils";
 
 export const COSMOS_COLLECTION_NAME = "integration-collection";
+export const COSMOS_LEASE_COLLECTION_NAME = "integration-lease-collection";
 export const ID = Math.random().toString();
 /**
  * Create DB and collections
@@ -44,13 +45,18 @@ export const createDatabase = (
 
 export const createAllCollections = (
   database: Database,
-): TE.TaskEither<Error, readonly void[]> =>
+): TE.TaskEither<Error, readonly Container[]> =>
   pipe(
     [
       pipe(
-        createCollection(database, COSMOS_COLLECTION_NAME, "id"),
-        TE.chain((container) => upsertItem(container, { id: ID })),
+        TE.Do,
+        TE.bind("collection", () =>
+          createCollection(database, COSMOS_COLLECTION_NAME, "id"),
+        ),
+        TE.chainFirst(({ collection }) => upsertItem(collection, { id: ID })),
+        TE.map(({ collection }) => collection),
       ),
+      createCollection(database, COSMOS_LEASE_COLLECTION_NAME, "id"),
     ],
     RA.sequence(TE.ApplicativePar),
   );

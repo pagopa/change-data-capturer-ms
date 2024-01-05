@@ -20,6 +20,13 @@ export const getChangeFeedIteratorOptions = (
   maxItemCount: maxItemCount && maxItemCount > 0 ? maxItemCount : 1,
 });
 
+// eslint-disable-next-line no-var
+var shouldExitExternal = false;
+
+export const setShouldExitExternal = (value: boolean): void => {
+  shouldExitExternal = value;
+};
+
 export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
@@ -30,6 +37,10 @@ export const processChangeFeed = (
       changeFeedIteratorOptions,
     );
     for await (const result of changeFeedIterator.getAsyncIterator()) {
+      if (shouldExitExternal) {
+        break;
+      }
+
       pipe(
         result.statusCode === StatusCodes.NotModified,
         B.fold(
@@ -41,7 +52,7 @@ export const processChangeFeed = (
               id: changeFeedContainer.id.replace(" ", "-"),
               lease: result.continuationToken,
             } as ContinuationTokenItem)(),
-          () => TE.right(constVoid),
+          TE.right(constVoid),
         ),
       );
     }

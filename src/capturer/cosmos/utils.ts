@@ -52,15 +52,13 @@ export const cosmosConnect = (
 export const getDatabase = (
   client: CosmosClient,
   databaseName: string,
-): E.Either<Error, Database> =>
+): TE.TaskEither<Error, Database> =>
   pipe(
-    E.tryCatch(
-      () => client.database(databaseName),
-      (reason) =>
-        new Error(
-          `Impossible to get database ${databaseName}: ${String(reason)}`,
-        ),
+    TE.tryCatch(
+      () => client.database(databaseName).read(),
+      () => new Error(`Impossible to get database ${databaseName}`),
     ),
+    TE.map((resp) => resp.database),
   );
 
 export const getContainer = (
@@ -68,14 +66,23 @@ export const getContainer = (
   containerName: string,
 ): TE.TaskEither<Error, Container> =>
   pipe(
-    E.tryCatch(
-      () => database.container(containerName),
-      (reason) =>
-        new Error(
-          `Impossible to get container ${containerName}: ${String(reason)}`,
-        ),
+    TE.tryCatch(
+      () => database.container(containerName).read(),
+      () => new Error(`Impossible to get container ${containerName}`),
     ),
-    TE.fromEither,
+    TE.map((resp) => resp.container),
+  );
+
+export const createContainer = (
+  database: Database,
+  containerName: string,
+): TE.TaskEither<Error, Container> =>
+  pipe(
+    TE.tryCatch(
+      () => database.containers.createIfNotExists({ id: containerName }),
+      () => new Error(`Impossible to create container ${containerName}`),
+    ),
+    TE.map((resp) => resp.container),
   );
 
 export const upsertItem = <T>(
