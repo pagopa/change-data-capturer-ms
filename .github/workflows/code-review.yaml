@@ -15,7 +15,18 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  start_cosmosdb_emulator:
+    timeout-minutes: 10
+    runs-on: windows-latest
+    steps:
+      - name: Start Azure Cosmos DB emulator
+        run: |
+          Write-Host "Launching Cosmos DB Emulator"
+          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+          Start-CosmosDbEmulator  
+
   code_review:
+    needs: start_cosmosdb_emulator
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
@@ -54,20 +65,4 @@ jobs:
           yarn install --immutable
           nc -zv 0.0.0.0 8081 || true
           yarn test
-          cd ..
-          
-  start_cosmosdb_emulator:
-    timeout-minutes: 10
-    runs-on: windows-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
-        with:
-          fetch-depth: 2
-
-      - name: Start Azure Cosmos DB emulator
-        run: |
-          Write-Host "Launching Cosmos DB Emulator"
-          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
-          Start-CosmosDbEmulator    
+          cd ..  
