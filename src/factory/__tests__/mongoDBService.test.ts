@@ -45,21 +45,24 @@ describe("mongoDBService", () => {
     expect(result).toEqual(left(new Error("Connection error")));
   });
 
-  it("should get database successfully", () => {
-    getMongoDbSpy.mockImplementationOnce(() => right(mockDatabase));
-    const result = mongoDBService.getDatabase(mockMongoClient, "test-database");
+  it("should get database successfully", async () => {
+    getMongoDbSpy.mockImplementationOnce(() => TE.right(mockDatabase));
+    const result = await mongoDBService.getDatabase(
+      mockMongoClient,
+      "test-database",
+    )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockDatabase));
   });
 
-  it("should handle error when getting database", () => {
+  it("should handle error when getting database", async () => {
     getMongoDbSpy.mockImplementationOnce(() =>
-      left(new Error("Database error")),
+      TE.left(new Error("Database error")),
     );
-    const result = mongoDBService.getDatabase(
+    const result = await mongoDBService.getDatabase(
       mockMongoClient,
       "invalid-database",
-    );
+    )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Database error")));
   });

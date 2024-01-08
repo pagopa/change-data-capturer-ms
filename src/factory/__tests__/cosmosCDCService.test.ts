@@ -40,9 +40,10 @@ describe("cosmosCDCService", () => {
     jest.clearAllMocks();
   });
   it("should process change feed successfully with lease", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockCosmosClient));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockContainer));
-    mockDBServiceClient.connect.mockReturnValueOnce(right(mockCosmosClient));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockCosmosClient));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
       TE.right(O.some({ id: "value", lease: "test" })),
     );
@@ -71,9 +72,10 @@ describe("cosmosCDCService", () => {
   });
 
   it("should process change feed successfully without lease", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockCosmosClient));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockContainer));
-    mockDBServiceClient.connect.mockReturnValueOnce(right(mockCosmosClient));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockCosmosClient));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(TE.right(O.none));
     getChangeFeedIteratorOptionsMock.mockReturnValueOnce({
       maxItemCount: 1,
@@ -101,7 +103,8 @@ describe("cosmosCDCService", () => {
   });
 
   it("should handle error during change feed processing", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockCosmosClient));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValueOnce(
       TE.left(new Error("Impossible to get the container")),
     );

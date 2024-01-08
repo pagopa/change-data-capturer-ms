@@ -44,13 +44,14 @@ describe("mongoCDCService", () => {
   });
 
   it("should process change feed successfully with resumeToken", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockMongoClient));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockCollection));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(
       TE.right(O.some({ id: "value", lease: "test" })),
     );
     const result = await mongoCDCService.processChangeFeed(
-      mockMongoClient,
+      "test-connection",
       "test-database",
       "test-container",
       "test-lease-container",
@@ -62,11 +63,12 @@ describe("mongoCDCService", () => {
   });
 
   it("should process change feed successfully without lease", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockMongoClient));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockCollection));
     mockDBServiceClient.getItemByID.mockReturnValueOnce(TE.right(O.none));
     const result = await mongoCDCService.processChangeFeed(
-      mockMongoClient,
+      "test-connection",
       "test-database",
       "test-container",
       "test-lease-container",
@@ -81,13 +83,14 @@ describe("mongoCDCService", () => {
   });
 
   it("should handle error during change feed processing", async () => {
-    mockDBServiceClient.getDatabase.mockReturnValueOnce(right(mockDatabase));
+    mockDBServiceClient.connect.mockReturnValueOnce(TE.right(mockMongoClient));
+    mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValueOnce(
       TE.left(new Error("Impossible to get the container")),
     );
 
     const result = await mongoCDCService.processChangeFeed(
-      mockMongoClient,
+      "test-connection",
       "invalid-database",
       "invalid-container",
     )(mockDBServiceClient)();
