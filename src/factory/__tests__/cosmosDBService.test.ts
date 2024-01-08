@@ -1,4 +1,9 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import {
+  Container,
+  CosmosClient,
+  CosmosClientOptions,
+  Database,
+} from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -9,6 +14,10 @@ import { cosmosDBService } from "../cosmosDBService";
 const mockCosmosClient: CosmosClient = {
   databases: jest.fn(),
 } as unknown as CosmosClient;
+const mockCosmosConfig: CosmosClientOptions = {
+  endpoint: "your-endpoint",
+  key: "your.key",
+} as unknown as CosmosClientOptions;
 const mockDatabase: Database = {} as Database;
 const mockContainer: Container = {} as Container;
 const mockItem: CosmosUtils.ContinuationTokenItem = {
@@ -17,6 +26,7 @@ const mockItem: CosmosUtils.ContinuationTokenItem = {
 
 jest.mock("../../capturer/cosmos/utils");
 
+const getCosmosConfigSpy = jest.spyOn(CosmosUtils, "getCosmosConfig");
 const cosmosConnectSpy = jest.spyOn(CosmosUtils, "cosmosConnect");
 const getDatabaseSpy = jest.spyOn(CosmosUtils, "getDatabase");
 const getContainerSpy = jest.spyOn(CosmosUtils, "getContainer");
@@ -25,14 +35,17 @@ const getItemByIDSpy = jest.spyOn(CosmosUtils, "getItemByID");
 describe("cosmosDBService", () => {
   it("should connect to Cosmos successfully", async () => {
     cosmosConnectSpy.mockImplementationOnce(() => right(mockCosmosClient));
+    getCosmosConfigSpy.mockImplementationOnce(() => right(mockCosmosConfig));
     const result = await cosmosDBService.connect({
-      connection: "valid-connection",
+      connection: "valid-string-connection",
     })();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockCosmosClient));
   });
 
   it("should handle connection error", async () => {
+    getCosmosConfigSpy.mockImplementationOnce(() => right(mockCosmosConfig));
+
     cosmosConnectSpy.mockImplementationOnce(() =>
       left(new Error("Connection error")),
     );
@@ -43,24 +56,24 @@ describe("cosmosDBService", () => {
     expect(result).toEqual(left(new Error("Connection error")));
   });
 
-  it("should get database successfully", () => {
-    getDatabaseSpy.mockImplementationOnce(() => right(mockDatabase));
-    const result = cosmosDBService.getDatabase(
+  it("should get database successfully", async () => {
+    getDatabaseSpy.mockImplementationOnce(() => TE.right(mockDatabase));
+    const result = await cosmosDBService.getDatabase(
       mockCosmosClient,
       "test-database",
-    );
+    )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockDatabase));
   });
 
-  it("should handle error when getting database", () => {
+  it("should handle error when getting database", async () => {
     getDatabaseSpy.mockImplementationOnce(() =>
-      left(new Error("Database error")),
+      TE.left(new Error("Database error")),
     );
-    const result = cosmosDBService.getDatabase(
+    const result = await cosmosDBService.getDatabase(
       mockCosmosClient,
       "invalid-database",
-    );
+    )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Database error")));
   });

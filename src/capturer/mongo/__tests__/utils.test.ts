@@ -39,7 +39,7 @@ describe("getMongoDb", () => {
   it("should get MongoDB database", async () => {
     dbSpy.mockReturnValueOnce(mockDb);
 
-    const result = getMongoDb(mockClient, "mock-db");
+    const result = await getMongoDb(mockClient, "mock-db")();
 
     expect(result).toEqual(E.right(mockDb));
     expect(dbSpy).toHaveBeenCalledWith("mock-db");
@@ -51,7 +51,7 @@ describe("getMongoDb", () => {
       throw getDBError;
     });
 
-    const result = getMongoDb(mockClient, "mock-db");
+    const result = await getMongoDb(mockClient, "mock-db")();
 
     expect(result).toEqual(
       E.left(

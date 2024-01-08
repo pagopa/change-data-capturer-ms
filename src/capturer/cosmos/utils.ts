@@ -1,4 +1,9 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import {
+  Container,
+  CosmosClient,
+  CosmosClientOptions,
+  Database,
+} from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
@@ -11,12 +16,34 @@ export const ContinuationTokenItem = T.type({
 });
 
 export type ContinuationTokenItem = T.TypeOf<typeof ContinuationTokenItem>;
-export const cosmosConnect = (
+
+const cosmosConnectionRegex = (s: string): RegExpExecArray | null =>
+  /AccountEndpoint=([^;]+);AccountKey=([^;]+)/.exec(s);
+
+export const getCosmosConfig = (
   connectionString: string,
+): E.Either<Error, CosmosClientOptions> =>
+  pipe(
+    connectionString,
+    cosmosConnectionRegex,
+    O.fromNullable,
+    E.fromOption(
+      () => "cosmos connection string does not match the expected format",
+    ),
+    E.mapLeft((message) => new Error(message)),
+    E.map((groups) => ({
+      endpoint: groups[1],
+      key: groups[2],
+    })),
+  );
+
+export const cosmosConnect = (
+  endpoint: string,
+  key: string,
 ): E.Either<Error, CosmosClient> =>
   pipe(
     E.tryCatch(
-      () => new CosmosClient(connectionString),
+      () => new CosmosClient({ endpoint, key }),
       (reason) =>
         new Error(`Impossible to connect to Cosmos: " ${String(reason)}`),
     ),
@@ -25,15 +52,13 @@ export const cosmosConnect = (
 export const getDatabase = (
   client: CosmosClient,
   databaseName: string,
-): E.Either<Error, Database> =>
+): TE.TaskEither<Error, Database> =>
   pipe(
-    E.tryCatch(
-      () => client.database(databaseName),
-      (reason) =>
-        new Error(
-          `Impossible to get database ${databaseName}: ${String(reason)}`,
-        ),
+    TE.tryCatch(
+      () => client.database(databaseName).read(),
+      () => new Error(`Impossible to get database ${databaseName}`),
     ),
+    TE.map((resp) => resp.database),
   );
 
 export const getContainer = (
@@ -41,14 +66,23 @@ export const getContainer = (
   containerName: string,
 ): TE.TaskEither<Error, Container> =>
   pipe(
-    E.tryCatch(
-      () => database.container(containerName),
-      (reason) =>
-        new Error(
-          `Impossible to get container ${containerName}: ${String(reason)}`,
-        ),
+    TE.tryCatch(
+      () => database.container(containerName).read(),
+      () => new Error(`Impossible to get container ${containerName}`),
     ),
-    TE.fromEither,
+    TE.map((resp) => resp.container),
+  );
+
+export const createContainer = (
+  database: Database,
+  containerName: string,
+): TE.TaskEither<Error, Container> =>
+  pipe(
+    TE.tryCatch(
+      () => database.containers.createIfNotExists({ id: containerName }),
+      () => new Error(`Impossible to create container ${containerName}`),
+    ),
+    TE.map((resp) => resp.container),
   );
 
 export const upsertItem = <T>(

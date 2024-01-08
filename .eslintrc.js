@@ -8,9 +8,11 @@ module.exports = {
     "generated",
     "**/__tests__/*",
     "**/__mocks__/*",
+    "**/__integrations__/*",
     "*.d.ts",
     "*.js",
     "Dangerfile.ts",
+    "index.ts",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {

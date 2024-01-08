@@ -22,9 +22,9 @@ export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
 export const getMongoDb = (
   client: MongoClient,
   dbName: string,
-): E.Either<Error, Db> =>
-  E.tryCatch(
-    () => client.db(dbName),
+): TE.TaskEither<Error, Db> =>
+  TE.tryCatch(
+    () => Promise.resolve(client.db(dbName)),
     (reason) => new Error(`Impossible to Get the ${dbName} db: ${reason}`),
   );
 

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { CosmosClient } from "@azure/cosmos";
-import * as E from "fp-ts/Either";
+import { Container, Database } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
@@ -9,13 +8,16 @@ import {
   getChangeFeedIteratorOptions,
   processChangeFeed,
 } from "../capturer/cosmos/cosmos";
+import { createContainer } from "../capturer/cosmos/utils";
 import { cosmosDBService } from "./cosmosDBService";
-import { ICDCService } from "./service";
+import { ICDCService, Item } from "./service";
+
+export const LEASE_CONTAINER_NAME = "cdc-data-lease";
 
 export const cosmosCDCService = {
   processChangeFeed:
     (
-      client: CosmosClient,
+      connectionString: string,
       database: string,
       resource: string,
       leaseResource?: string,
@@ -23,31 +25,67 @@ export const cosmosCDCService = {
     ) =>
     (cosmosDBServiceClient: typeof cosmosDBService): TaskEither<Error, void> =>
       pipe(
-        E.Do,
-        E.bind("database", () =>
+        TE.Do,
+        TE.bind("client", () =>
+          cosmosDBServiceClient.connect({ connection: connectionString }),
+        ),
+        TE.bind("database", ({ client }) =>
           cosmosDBServiceClient.getDatabase(client, database),
         ),
-        TE.fromEither,
         TE.bind("container", ({ database }) =>
           cosmosDBServiceClient.getResource(database, resource),
         ),
         TE.bind("leaseContainer", ({ database }) =>
-          cosmosDBServiceClient.getResource(database, leaseResource),
+          pipe(
+            O.fromNullable(leaseResource),
+            O.fold(
+              () => TE.right<Error, O.Option<Container>>(O.none),
+              (lease) =>
+                pipe(
+                  cosmosDBServiceClient.getResource(database, lease),
+                  TE.map((lcontainer) => O.some(lcontainer)),
+                  TE.mapLeft((error) => error),
+                ),
+            ),
+          ),
         ),
         TE.bind("continuationToken", ({ leaseContainer }) =>
-          cosmosDBServiceClient.getItemByID(leaseContainer, prefix),
+          pipe(
+            leaseContainer,
+            O.fold(
+              () => TE.right<Error, O.Option<Item>>(O.none),
+              (container) =>
+                pipe(
+                  O.fromNullable(prefix),
+                  O.fold(
+                    () => TE.right<Error, O.Option<Item>>(O.none),
+                    (id) => cosmosDBServiceClient.getItemByID(container, id),
+                  ),
+                ),
+            ),
+          ),
         ),
-        TE.chain(({ continuationToken, container, leaseContainer }) =>
+        TE.chain(({ continuationToken, container, leaseContainer, database }) =>
           pipe(
             continuationToken,
             O.map((token) => token.lease),
             O.toUndefined,
             getChangeFeedIteratorOptions,
             (changeFeedIteratorOptions) =>
-              processChangeFeed(
-                container,
-                changeFeedIteratorOptions,
+              pipe(
                 leaseContainer,
+                O.fold(
+                  () =>
+                    createContainer(database as Database, LEASE_CONTAINER_NAME),
+                  (lContainer) => TE.right(lContainer),
+                ),
+                TE.chain((lContainer) =>
+                  processChangeFeed(
+                    container as Container,
+                    changeFeedIteratorOptions,
+                    lContainer as Container,
+                  ),
+                ),
               ),
           ),
         ),
