@@ -63,7 +63,7 @@ jobs:
           ipaddr="`ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2}' | head -n 1`"
           ifconfig | grep "inet " | grep -Fv 127.0.0.1
           docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-          docker run -p 8081:8081 -p 10250-10255:10250-10255 -m 4g --cpus=2.0 --name=test-linux-emulator  -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 -e AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true -d -it mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+          docker run -p 8081:8081 -p 10250-10255:10250-10255 -m 4g --cpus=2.0 --name=test-linux-emulator  -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 -e AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false -e AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=$ipaddr -d -it mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
           sleep 30
           docker ps -a 
           docker logs test-linux-emulator
