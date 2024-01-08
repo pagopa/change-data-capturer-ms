@@ -15,18 +15,17 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  start_cosmosdb_emulator:
-    timeout-minutes: 10
-    runs-on: windows-latest
-    steps:
-      - name: Start Azure Cosmos DB emulator
-        run: |
-          Write-Host "Launching Cosmos DB Emulator"
-          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
-          Start-CosmosDbEmulator  
-
+#   start_cosmosdb_emulator:
+#     timeout-minutes: 10
+#     runs-on: windows-latest
+#     steps:
+#       - name: Start Azure Cosmos DB emulator
+#         run: |
+#           Write-Host "Launching Cosmos DB Emulator"
+#           Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+#           Start-CosmosDbEmulator  
   code_review:
-    needs: start_cosmosdb_emulator
+    #needs: start_cosmosdb_emulator
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
@@ -58,6 +57,14 @@ jobs:
 
       - name: Set env
         run: echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
+
+      - name: Start cosmosdb
+        run: |
+          ipaddr="`ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2}' | head -n 1`"
+          ifconfig | grep "inet " | grep -Fv 127.0.0.1
+          docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+          docker run -p 8081:8081 -p 10251:10251 -p 10252:10252 -p 10253:10253 -p 10254:10254 -m 4g --cpus=2.0 --name=test-linux-emulator  -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 -e AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false -e AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=$ipaddr -d -it mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+        shell: bash
 
       - name: Integration test
         run: |
