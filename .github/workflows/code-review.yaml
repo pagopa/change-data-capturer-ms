@@ -30,12 +30,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-            
-      - name: Start Azure Cosmos DB emulator
-        run: >-
-          Write-Host "Launching Cosmos DB Emulator"
-          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
-          Start-CosmosDbEmulator
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -58,7 +52,6 @@ jobs:
         run: |
           cd __integrations__
           yarn install --immutable
-          docker logs azure-cosmosdb-emulator
           nc -zv 0.0.0.0 8081 || true
           yarn test
           cd ..
