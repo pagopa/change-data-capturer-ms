@@ -25,7 +25,7 @@ services:
     restart: always
     container_name: "azure-cosmosdb-emulator"
     hostname: "azure.cosmosdb"
-    image: 'mcr.microsoft.com/cosmosdb/windows/azure-cosmos-emulator:latest'
+    image: 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest'
     tty: true
     ports:
     - '8081:8081'

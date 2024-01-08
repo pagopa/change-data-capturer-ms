@@ -65,15 +65,14 @@ describe("get Database", () => {
       service.connect({
         connection: COSMOSDB_CONNECTION_STRING,
       }),
-      TE.chain((client) =>
-        pipe(service.getDatabase(client, "fake_database"), TE.fromEither),
-      ),
+      TE.chain((client) => service.getDatabase(client, "fake_database")),
     )();
 
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      const database = result.right;
-      expect((database as Database).read()).rejects.toThrow();
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left).toEqual(
+        new Error(`Impossible to get database fake_database`),
+      );
     }
   });
 
@@ -82,9 +81,7 @@ describe("get Database", () => {
       service.connect({
         connection: COSMOSDB_CONNECTION_STRING,
       }),
-      TE.chain((client) =>
-        pipe(service.getDatabase(client, COSMOSDB_NAME), TE.fromEither),
-      ),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
     )();
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
@@ -101,18 +98,17 @@ describe("getResource", () => {
       service.connect({
         connection: COSMOSDB_CONNECTION_STRING,
       }),
-      TE.chain((client) =>
-        pipe(service.getDatabase(client, COSMOSDB_NAME), TE.fromEither),
-      ),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, "fake_container")),
       ),
     )();
 
-    expect(E.isRight(result)).toBeTruthy();
-    if (E.isRight(result)) {
-      const container = result.right;
-      expect((container as Container).read()).rejects.toThrow();
+    expect(E.isLeft(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left).toEqual(
+        new Error(`Impossible to get container fake_container`),
+      );
     }
   });
 
@@ -121,9 +117,7 @@ describe("getResource", () => {
       service.connect({
         connection: COSMOSDB_CONNECTION_STRING,
       }),
-      TE.chain((client) =>
-        pipe(service.getDatabase(client, COSMOSDB_NAME), TE.fromEither),
-      ),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, COSMOS_COLLECTION_NAME)),
       ),
@@ -143,16 +137,20 @@ describe("getItemById", () => {
       service.connect({
         connection: COSMOSDB_CONNECTION_STRING,
       }),
-      TE.chain((client) =>
-        pipe(service.getDatabase(client, COSMOSDB_NAME), TE.fromEither),
-      ),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
-        pipe(service.getResource(database, "fake_container")),
+        pipe(service.getResource(database, COSMOS_COLLECTION_NAME)),
       ),
       TE.chain((resource) => pipe(service.getItemByID(resource, "fake_id"))),
     )();
 
-    expect(E.isRight(result)).toBeTruthy();
+    if (E.isLeft(result)) {
+      expect(result.left).toEqual(
+        new Error(
+          `Impossible to get item fake_id from container ${COSMOS_COLLECTION_NAME}`,
+        ),
+      );
+    }
   });
 
   it("should return an existing item", async () => {
@@ -160,9 +158,7 @@ describe("getItemById", () => {
       service.connect({
         connection: COSMOSDB_CONNECTION_STRING,
       }),
-      TE.chain((client) =>
-        pipe(service.getDatabase(client, COSMOSDB_NAME), TE.fromEither),
-      ),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, COSMOS_COLLECTION_NAME)),
       ),

@@ -96,11 +96,7 @@ describe("cosmosCDCService", () => {
     expect(E.isRight(result)).toBeTruthy();
   }, 10000);
 
-  it("should use default lease container when not passed in parameters - With continuation token", async () => {
-    setTimeout(() => {
-      setShouldExitExternal(true);
-    }, 8000);
-
+  const insertContinuationToken = async (continuationToken: string) => {
     await pipe(
       TE.Do,
       TE.bind("database", () =>
@@ -117,13 +113,20 @@ describe("cosmosCDCService", () => {
           leaseContainer as Container,
           {
             id: "integration-tests",
-            lease:
-              '{"rid":"CqFyAMKO4yw=","Continuation":[{"minInclusive":"","maxExclusive":"FF","continuationToken":"\\"0\\""}]}',
+            lease: continuationToken,
           } as ContinuationTokenItem,
         ),
       ),
     )();
+  };
+  it("should use default lease container when not passed in parameters - With continuation token", async () => {
+    setTimeout(() => {
+      setShouldExitExternal(true);
+    }, 8000);
 
+    insertContinuationToken(
+      '{"rid":"CqFyAMKO4yw=","Continuation":[{"minInclusive":"","maxExclusive":"FF","continuationToken":"\\"0\\""}]}',
+    );
     const result = await service.processChangeFeed(
       COSMOSDB_CONNECTION_STRING,
       COSMOSDB_NAME,
@@ -151,28 +154,9 @@ describe("cosmosCDCService", () => {
       setShouldExitExternal(true);
     }, 8000);
 
-    await pipe(
-      TE.Do,
-      TE.bind("database", () =>
-        service.getDatabase(
-          new CosmosClient(COSMOSDB_CONNECTION_STRING),
-          COSMOSDB_NAME,
-        ),
-      ),
-      TE.bind("leaseContainer", ({ database }) =>
-        service.getResource(database, COSMOS_LEASE_COLLECTION_NAME),
-      ),
-      TE.chainFirst(({ leaseContainer }) =>
-        upsertItem<ContinuationTokenItem>(
-          leaseContainer as Container,
-          {
-            id: "integration-tests",
-            lease:
-              '{"rid":"CqFyAMKO4yw=","Continuation":[{"minInclusive":"","maxExclusive":"FF","continuationToken":"\\"0\\""}]}',
-          } as ContinuationTokenItem,
-        ),
-      ),
-    )();
+    insertContinuationToken(
+      '{"rid":"CqFyAMKO4yw=","Continuation":[{"minInclusive":"","maxExclusive":"FF","continuationToken":"\\"0\\""}]}',
+    );
 
     const result = await service.processChangeFeed(
       COSMOSDB_CONNECTION_STRING,
@@ -203,28 +187,9 @@ describe("cosmosCDCService", () => {
       setShouldExitExternal(true);
     }, 8000);
 
-    await pipe(
-      TE.Do,
-      TE.bind("database", () =>
-        service.getDatabase(
-          new CosmosClient(COSMOSDB_CONNECTION_STRING),
-          COSMOSDB_NAME,
-        ),
-      ),
-      TE.bind("leaseContainer", ({ database }) =>
-        service.getResource(database, COSMOS_LEASE_COLLECTION_NAME),
-      ),
-      TE.chainFirst(({ leaseContainer }) =>
-        upsertItem<ContinuationTokenItem>(
-          leaseContainer as Container,
-          {
-            id: "integration-tests",
-            lease:
-              '{"rid":"CqFyAMKO4yw=","Continuation":[{"minInclusive":"","maxExclusive":"FF","continuationToken":"\\"0\\""}]}',
-          } as ContinuationTokenItem,
-        ),
-      ),
-    )();
+    insertContinuationToken(
+      '{"rid":"CqFyAMKO4yw=","Continuation":[{"minInclusive":"","maxExclusive":"FF","continuationToken":"\\"0\\""}]}',
+    );
 
     const result = await service.processChangeFeed(
       COSMOSDB_CONNECTION_STRING,

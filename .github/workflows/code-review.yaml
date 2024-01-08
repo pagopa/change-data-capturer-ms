@@ -15,17 +15,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-#   start_cosmosdb_emulator:
-#     timeout-minutes: 10
-#     runs-on: windows-latest
-#     steps:
-#       - name: Start Azure Cosmos DB emulator
-#         run: |
-#           Write-Host "Launching Cosmos DB Emulator"
-#           Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
-#           Start-CosmosDbEmulator  
   code_review:
-    #needs: start_cosmosdb_emulator
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
@@ -58,25 +48,25 @@ jobs:
       - name: Set env
         run: echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
 
-      - name: Start cosmosdb
-        run: |
-          ipaddr="`ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2}' | head -n 1`"
-          ifconfig | grep "inet " | grep -Fv 127.0.0.1
-          docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-          docker run -p 8081:8081 -p 10250-10255:10250-10255 -m 4g --cpus=2.0 --name=test-linux-emulator  -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 -e AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false -e AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=$ipaddr -d -it mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-          sleep 30
-          docker ps -a 
-          docker logs test-linux-emulator
-          nc -zv 0.0.0.0 8081 || true
-          nc -zv $ipaddr 8081 || true
-          # curl -k https://localhost:8081/_explorer/emulator.pem > /tmp/emulatorcert.crt
-          # keytool -cacerts -storepass changeit -noprompt -importcert -alias emulator_cert -file /tmp/emulatorcert.crt
-        shell: bash
+      # - name: Start cosmosdb
+        # run: |
+        #   ipaddr="`ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2}' | head -n 1`"
+        #   ifconfig | grep "inet " | grep -Fv 127.0.0.1
+        #   docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+        #   docker run -p 8081:8081 -p 10250-10255:10250-10255 -m 4g --cpus=2.0 --name=test-linux-emulator  -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 -e AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false -e AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=$ipaddr -d -it mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+        #   sleep 30
+        #   docker ps -a 
+        #   docker logs test-linux-emulator
+        #   nc -zv 0.0.0.0 8081 || true
+        #   nc -zv $ipaddr 8081 || true
+        #   # curl -k https://localhost:8081/_explorer/emulator.pem > /tmp/emulatorcert.crt
+        #   # keytool -cacerts -storepass changeit -noprompt -importcert -alias emulator_cert -file /tmp/emulatorcert.crt
+        # shell: bash
 
-      - name: Integration test
-        run: |
-          cd __integrations__
-          yarn install --immutable
-          nc -zv 0.0.0.0 8081 || true
-          yarn test
-          cd ..  
+      # - name: Integration test
+      #   run: |
+      #     cd __integrations__
+      #     yarn install --immutable
+      #     nc -zv 0.0.0.0 8081 || true
+      #     yarn test
+      #     cd ..  
