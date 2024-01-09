@@ -22,7 +22,6 @@ export const createCosmosDbAndCollections = (
 ): TE.TaskEither<Error, Database> =>
   pipe(
     createDatabase(client, cosmosDbName),
-    TE.chainFirst(deleteAllCollections),
     TE.chainFirst(createAllCollections),
   );
 
@@ -33,6 +32,17 @@ export const createDatabase = (
   pipe(
     TE.tryCatch(() => {
       return client.databases.createIfNotExists({ id: dbName });
+    }, E.toError),
+    TE.map((databaseResponse) => databaseResponse.database),
+  );
+
+export const deleteDatabase = (
+  client: CosmosClient,
+  dbName: string,
+): TE.TaskEither<Error, Database> =>
+  pipe(
+    TE.tryCatch(() => {
+      return client.database(dbName).delete();
     }, E.toError),
     TE.map((databaseResponse) => databaseResponse.database),
   );

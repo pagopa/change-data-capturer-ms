@@ -18,7 +18,7 @@ jobs:
   code_review:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-
+    environment: IntegrationTests
     steps:
       - name: Check out code
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
@@ -46,7 +46,10 @@ jobs:
         run: yarn run code-review
 
       - name: Set env
-        run: echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
+        run: |
+          echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
+          echo "COSMOSDB_NAME=${{github.run_id}}" >> $GITHUB_ENV
+          echo "COSMOSDB_CONNECTION_STRING=${{secrets.COSMOSDB_CONNECTION_STRING}}" >> $GITHUB_ENV
 
       # - name: Start cosmosdb
         # run: |
@@ -63,10 +66,9 @@ jobs:
         #   # keytool -cacerts -storepass changeit -noprompt -importcert -alias emulator_cert -file /tmp/emulatorcert.crt
         # shell: bash
 
-      # - name: Integration test
-      #   run: |
-      #     cd __integrations__
-      #     yarn install --immutable
-      #     nc -zv 0.0.0.0 8081 || true
-      #     yarn test
-      #     cd ..  
+      - name: Integration test
+        run: |
+          cd __integrations__
+          yarn install --immutable
+          yarn test
+          cd ..  
