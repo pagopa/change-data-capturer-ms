@@ -24,9 +24,6 @@ export const createCosmosDbAndCollections = (
     createDatabase(client, cosmosDbName),
     TE.chainFirst(deleteAllCollections),
     TE.chainFirst(createAllCollections),
-    TE.mapLeft((err) => {
-      return err;
-    }),
   );
 
 export const createDatabase = (
@@ -38,9 +35,6 @@ export const createDatabase = (
       return client.databases.createIfNotExists({ id: dbName });
     }, E.toError),
     TE.map((databaseResponse) => databaseResponse.database),
-    TE.mapLeft((err) => {
-      return err;
-    }),
   );
 
 export const createAllCollections = (
@@ -49,12 +43,8 @@ export const createAllCollections = (
   pipe(
     [
       pipe(
-        TE.Do,
-        TE.bind("collection", () =>
-          createCollection(database, COSMOS_COLLECTION_NAME, "id"),
-        ),
-        TE.chainFirst(({ collection }) => upsertItem(collection, { id: ID })),
-        TE.map(({ collection }) => collection),
+        createCollection(database, COSMOS_COLLECTION_NAME, "id"),
+        TE.chainFirst((collection) => upsertItem(collection, { id: ID })),
       ),
       createCollection(database, COSMOS_LEASE_COLLECTION_NAME, "id"),
     ],
@@ -112,11 +102,5 @@ export const deleteAllCollections = (
         RA.sequence(TE.ApplicativePar),
       ),
     ),
-    TE.map((collections) => {
-      return collections;
-    }),
-    TE.mapLeft((err) => {
-      return err;
-    }),
   );
 };

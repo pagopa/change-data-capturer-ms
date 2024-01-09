@@ -44,7 +44,6 @@ export const cosmosCDCService = {
                 pipe(
                   cosmosDBServiceClient.getResource(database, lease),
                   TE.map((lcontainer) => O.some(lcontainer)),
-                  TE.mapLeft((error) => error),
                 ),
             ),
           ),

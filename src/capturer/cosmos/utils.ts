@@ -30,7 +30,7 @@ export const getCosmosConfig = (
     E.fromOption(
       () => "cosmos connection string does not match the expected format",
     ),
-    E.mapLeft((message) => new Error(message)),
+    E.mapLeft(E.toError),
     E.map((groups) => ({
       endpoint: groups[1],
       key: groups[2],
