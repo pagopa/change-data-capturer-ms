@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { CosmosClient } from "@azure/cosmos";
-import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
@@ -23,11 +22,10 @@ export const cosmosCDCService = {
     ) =>
     (cosmosDBServiceClient: typeof cosmosDBService): TaskEither<Error, void> =>
       pipe(
-        E.Do,
-        E.bind("database", () =>
+        TE.Do,
+        TE.bind("database", () =>
           cosmosDBServiceClient.getDatabase(client, database),
         ),
-        TE.fromEither,
         TE.bind("container", ({ database }) =>
           cosmosDBServiceClient.getResource(database, resource),
         ),

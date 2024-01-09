@@ -16,7 +16,6 @@ import {
   getOrCreateMongoCollection,
   insertDocument,
 } from "../utils";
-
 jest.mock("mongodb", () => ({
   MongoClient: jest.fn(),
 }));
@@ -39,7 +38,7 @@ describe("getMongoDb", () => {
   it("should get MongoDB database", async () => {
     dbSpy.mockReturnValueOnce(mockDb);
 
-    const result = getMongoDb(mockClient, "mock-db");
+    const result = await getMongoDb(mockClient, "mock-db")();
 
     expect(result).toEqual(E.right(mockDb));
     expect(dbSpy).toHaveBeenCalledWith("mock-db");
@@ -51,19 +50,16 @@ describe("getMongoDb", () => {
       throw getDBError;
     });
 
-    const result = getMongoDb(mockClient, "mock-db");
+    const result = await getMongoDb(mockClient, "mock-db")();
 
     expect(result).toEqual(
-      E.left(
-        new Error(
-          "Impossible to Get the mock-db db: Error: Error while getting database",
-        ),
-      ),
+      E.left(new Error("Impossible to Get the mock-db db")),
     );
     expect(dbSpy).toHaveBeenCalledWith("mock-db");
   });
 });
 
+const testID = "testID";
 const mockCollection: Collection = {
   find: jest.fn(),
   sort: jest.fn(),
@@ -71,6 +67,7 @@ const mockCollection: Collection = {
   tryNext: jest.fn(),
   findOne: jest.fn(),
   insertOne: jest.fn(),
+  namespace: testID,
 } as unknown as Collection;
 
 const collectionName = "testCollection";
@@ -130,11 +127,7 @@ describe("getMongoCollection", () => {
       name: collectionName,
     });
     expect(result).toEqual(
-      E.left(
-        new Error(
-          "Impossible to Get the testCollection collection: Error: Error while getting the collection",
-        ),
-      ),
+      E.left(new Error(`Impossible to Get the ${collectionName} collection`)),
     );
   });
 });
@@ -171,11 +164,7 @@ describe("getOrCreateMongoCollection", () => {
       name: collectionName,
     });
     expect(result).toEqual(
-      E.left(
-        new Error(
-          "Impossible to Get the testCollection collection: Error: Error while getting collection",
-        ),
-      ),
+      E.left(new Error(`Impossible to Get the ${collectionName} collection`)),
     );
   });
 
@@ -222,16 +211,11 @@ describe("disconnectMongo", () => {
 
     expect(closeSpy).toHaveBeenCalledWith();
     expect(result).toEqual(
-      E.left(
-        new Error(
-          `Impossible to disconnect the mongo client: Error: Error while disconnecting client`,
-        ),
-      ),
+      E.left(new Error(`Impossible to disconnect the mongo client`)),
     );
   });
 });
 
-const testID = "testID";
 const mockWithIDDocument = {
   _id: testID,
   test: "test",
@@ -265,7 +249,7 @@ describe("findDocumentByID", () => {
     expect(result).toEqual(
       E.left(
         new Error(
-          `Unable to get the the document with ID ${testID} from collection: Error: Error while getting document by ID`,
+          `Unable to get the the document with ID ${testID} from collection ${testID}`,
         ),
       ),
     );
@@ -296,12 +280,6 @@ describe("insertDocument", () => {
 
     const result = await insertDocument(mockCollection, document)();
 
-    expect(result).toEqual(
-      E.left(
-        new Error(
-          `Unable to insert the document: Error: Error while inserting the document`,
-        ),
-      ),
-    );
+    expect(result).toEqual(E.left(new Error(`Unable to insert the document`)));
   });
 });

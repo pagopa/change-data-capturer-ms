@@ -33,11 +33,10 @@ export const mongoCDCService = {
     ) =>
     (mongoDBServiceClient: typeof mongoDBService): TaskEither<Error, void> =>
       pipe(
-        E.Do,
-        E.bind("database", () =>
+        TE.Do,
+        TE.bind("database", () =>
           mongoDBServiceClient.getDatabase(client, database),
         ),
-        TE.fromEither,
         TE.bind("collection", ({ database }) =>
           mongoDBServiceClient.getResource(database, resource),
         ),

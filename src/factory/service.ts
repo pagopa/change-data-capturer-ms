@@ -1,6 +1,5 @@
 import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
-import { Either } from "fp-ts/lib/Either";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { Collection, Db, Document, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../capturer/cosmos/utils";
@@ -16,7 +15,10 @@ export type Item = ContinuationTokenItem | Document;
 
 export interface IDatabaseService {
   readonly connect: (config: IDatabaseConfig) => TaskEither<Error, DBClient>;
-  readonly getDatabase: (client: DBClient, name: string) => Either<Error, DB>;
+  readonly getDatabase: (
+    client: DBClient,
+    name: string,
+  ) => TaskEither<Error, DB>;
   readonly getResource: (
     database: DB,
     resourceName: string,

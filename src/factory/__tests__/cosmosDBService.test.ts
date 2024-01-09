@@ -43,24 +43,24 @@ describe("cosmosDBService", () => {
     expect(result).toEqual(left(new Error("Connection error")));
   });
 
-  it("should get database successfully", () => {
-    getDatabaseSpy.mockImplementationOnce(() => right(mockDatabase));
-    const result = cosmosDBService.getDatabase(
+  it("should get database successfully", async () => {
+    getDatabaseSpy.mockImplementationOnce(() => TE.right(mockDatabase));
+    const result = await cosmosDBService.getDatabase(
       mockCosmosClient,
       "test-database",
-    );
+    )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockDatabase));
   });
 
-  it("should handle error when getting database", () => {
+  it("should handle error when getting database", async () => {
     getDatabaseSpy.mockImplementationOnce(() =>
-      left(new Error("Database error")),
+      TE.left(new Error("Database error")),
     );
-    const result = cosmosDBService.getDatabase(
+    const result = await cosmosDBService.getDatabase(
       mockCosmosClient,
       "invalid-database",
-    );
+    )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Database error")));
   });
