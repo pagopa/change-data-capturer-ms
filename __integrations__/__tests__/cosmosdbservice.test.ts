@@ -10,11 +10,11 @@ import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../env";
 import {
   COSMOS_COLLECTION_NAME,
   createCosmosDbAndCollections,
+  deleteDatabase,
   ID,
 } from "../utils/cosmos";
 
 const service = createDatabaseService(ServiceType.Cosmos);
-
 beforeAll(async () => {
   console.info(
     `Initializing App - CosmosDB ${COSMOSDB_CONNECTION_STRING} - ${COSMOSDB_NAME}`,
@@ -33,6 +33,22 @@ beforeAll(async () => {
     }),
   )();
 }, 60000);
+
+afterAll(async () => {
+  await pipe(
+    getCosmosConfig(COSMOSDB_CONNECTION_STRING),
+    TE.fromEither,
+    TE.chain((config) =>
+      deleteDatabase(
+        new CosmosClient({ endpoint: config.endpoint, key: config.key }),
+        COSMOSDB_NAME,
+      ),
+    ),
+    TE.getOrElse((e) => {
+      throw Error(`Cannot delete db ${JSON.stringify(e)}`);
+    }),
+  );
+});
 
 describe("Cosmos connection", () => {
   it("should return error when trying to connect to a not valid cosmos endpoint", async () => {
