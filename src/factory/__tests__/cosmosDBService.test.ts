@@ -13,6 +13,7 @@ const mockDatabase: Database = {} as Database;
 const mockContainer: Container = {} as Container;
 const mockItem: CosmosUtils.ContinuationTokenItem = {
   id: "test",
+  lease: "lease",
 } as CosmosUtils.ContinuationTokenItem;
 
 jest.mock("../../capturer/cosmos/utils");

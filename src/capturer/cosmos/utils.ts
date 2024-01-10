@@ -5,7 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import * as T from "io-ts";
 
-export const ContinuationTokenItem = T.type({
+const ContinuationTokenItem = T.type({
   id: T.string,
   lease: T.string,
 });
@@ -21,6 +21,18 @@ export const cosmosConnect = (
       (reason) =>
         new Error(`Impossible to connect to Cosmos: " ${String(reason)}`),
     ),
+  );
+
+export const createContainer = (
+  database: Database,
+  containerName: string,
+): TE.TaskEither<Error, Container> =>
+  pipe(
+    TE.tryCatch(
+      () => database.containers.createIfNotExists({ id: containerName }),
+      () => new Error(`Impossible to create container ${containerName}`),
+    ),
+    TE.map((resp) => resp.container),
   );
 
 export const getDatabase = (

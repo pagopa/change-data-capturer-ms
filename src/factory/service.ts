@@ -1,4 +1,10 @@
-import { Container, CosmosClient, Database } from "@azure/cosmos";
+import {
+  Resource as AzureResource,
+  Container,
+  CosmosClient,
+  Database,
+} from "@azure/cosmos";
+import { KafkaProducerCompact } from "@pagopa/fp-ts-kafkajs/dist/lib/KafkaProducerCompact";
 import * as O from "fp-ts/Option";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { Collection, Db, Document, MongoClient } from "mongodb";
@@ -34,6 +40,7 @@ export interface ICDCService {
     client: DBClient,
     database: string,
     resource: string,
+    mqueueClient: KafkaProducerCompact<AzureResource>,
     leaseResource?: string,
     prefix?: string,
   ) => (DBServiceClient: IDatabaseService) => TaskEither<Error, void>;
