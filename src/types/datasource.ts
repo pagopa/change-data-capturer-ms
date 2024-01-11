@@ -208,9 +208,11 @@ export const DBDataSource = t.intersection([
 ]);
 export type DBDataSource = t.TypeOf<typeof DBDataSource>;
 
-export const DataSourceQueueType = t.literal("EVENT_HUB");
+export const QueueDataSourceQueueType = t.literal("EVENT_HUB");
 
-export type DataSourceQueueType = t.TypeOf<typeof DataSourceQueueType>;
+export type QueueDataSourceQueueType = t.TypeOf<
+  typeof QueueDataSourceQueueType
+>;
 
 export const QueueDataSourceConfig = t.exact(
   t.type({
@@ -218,7 +220,7 @@ export const QueueDataSourceConfig = t.exact(
       clientId: NonEmptyString,
       groupId: NonEmptyString,
     }),
-    queueType: DataSourceQueueType,
+    queueType: QueueDataSourceQueueType,
     type: QueueDataSourceType,
   }),
 );
