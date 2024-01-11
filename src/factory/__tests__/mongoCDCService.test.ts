@@ -53,6 +53,7 @@ describe("mongoCDCService", () => {
       mockMongoClient,
       "test-database",
       "test-container",
+      () => void 0,
       "test-lease-container",
       "test-prefix",
     )(mockDBServiceClient)();
@@ -69,6 +70,7 @@ describe("mongoCDCService", () => {
       mockMongoClient,
       "test-database",
       "test-container",
+      () => void 0,
       "test-lease-container",
       "test-prefix",
     )(mockDBServiceClient)();
@@ -90,6 +92,7 @@ describe("mongoCDCService", () => {
       mockMongoClient,
       "invalid-database",
       "invalid-container",
+      () => void 0,
     )(mockDBServiceClient)();
 
     expect(result).toEqual(

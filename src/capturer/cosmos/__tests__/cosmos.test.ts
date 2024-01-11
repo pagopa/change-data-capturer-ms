@@ -7,6 +7,7 @@ import {
   StatusCodes,
 } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 import { getChangeFeedIteratorOptions, processChangeFeed } from "../cosmos";
 import { ContinuationTokenItem } from "../utils";
 
@@ -64,11 +65,17 @@ describe("getAndProcessChangeFeed", () => {
     jest.resetModules();
     jest.clearAllMocks();
   });
+
+  const processResult = (_: ReadonlyArray<unknown>) => {
+    return TE.of(void 0);
+  };
+
   it("should process change feed successfully with lease updated", async () => {
     getChangeFeedIteratorMock.mockImplementationOnce(() => [
       {
         statusCode: StatusCodes.Created,
         continuationToken: "test-continuation-token",
+        result: { id: "test-id", lease: "test-continuation-token" },
       },
     ]);
     upsertMock.mockReturnValueOnce(() => Promise<void>);
@@ -82,6 +89,7 @@ describe("getAndProcessChangeFeed", () => {
       mockProcessContainer,
       changeFeedIteratorOptions,
       mockLeaseContainer,
+      processResult,
     )();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -115,6 +123,7 @@ describe("getAndProcessChangeFeed", () => {
       mockProcessContainer,
       changeFeedIteratorOptions,
       mockLeaseContainer,
+      () => void 0,
     )();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -143,6 +152,7 @@ describe("getAndProcessChangeFeed", () => {
       mockProcessContainer,
       changeFeedIteratorOptions,
       mockLeaseContainer,
+      () => void 0,
     )();
 
     expect(E.isLeft(result)).toBeTruthy();

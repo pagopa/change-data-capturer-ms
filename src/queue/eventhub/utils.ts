@@ -21,8 +21,7 @@ export const sendMessageEventHub =
   <T>(messagingClient: KafkaProducerCompact<T>) =>
   (messages: ReadonlyArray<T>): TE.TaskEither<Error, void> =>
     pipe(
-      messages,
-      sendMessages<T>(messagingClient),
+      sendMessages<T>(messagingClient)(messages),
       TE.map(constVoid),
       TE.mapLeft(
         (sendFailureErrors) =>

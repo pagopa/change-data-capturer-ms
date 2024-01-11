@@ -53,7 +53,7 @@ describe("getMongoDb", () => {
     const result = await getMongoDb(mockClient, "mock-db")();
 
     expect(result).toEqual(
-      E.left(new Error("Impossible to Get the mock-db db")),
+      E.left(new Error("Impossible to get database mock-db")),
     );
     expect(dbSpy).toHaveBeenCalledWith("mock-db");
   });
@@ -127,7 +127,7 @@ describe("getMongoCollection", () => {
       name: collectionName,
     });
     expect(result).toEqual(
-      E.left(new Error(`Impossible to Get the ${collectionName} collection`)),
+      E.left(new Error(`Impossible to get collection ${collectionName}`)),
     );
   });
 });
@@ -164,7 +164,7 @@ describe("getOrCreateMongoCollection", () => {
       name: collectionName,
     });
     expect(result).toEqual(
-      E.left(new Error(`Impossible to Get the ${collectionName} collection`)),
+      E.left(new Error(`Impossible to get collection ${collectionName}`)),
     );
   });
 
@@ -248,9 +248,7 @@ describe("findDocumentByID", () => {
 
     expect(result).toEqual(
       E.left(
-        new Error(
-          `Unable to get the the document with ID ${testID} from collection ${testID}`,
-        ),
+        new Error(`Impossible to get item ${testID} from collection ${testID}`),
       ),
     );
   });

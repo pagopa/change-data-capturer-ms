@@ -15,17 +15,19 @@ import {
 export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
   TE.tryCatch(
     () => MongoClient.connect(uri),
-    (reason) =>
-      new Error(`Impossible to connect to MongoDB: ${String(reason)}`),
+    () => new Error(`Impossible to connect to MongoDB`),
   );
 
 export const getMongoDb = (
   client: MongoClient,
   dbName: string,
 ): TE.TaskEither<Error, Db> =>
-  TE.tryCatch(
-    () => Promise.resolve(client.db(dbName)),
-    () => new Error(`Impossible to Get the ${dbName} db`),
+  pipe(
+    E.tryCatch(
+      () => client.db(dbName),
+      () => new Error(`Impossible to get database ${dbName}`),
+    ),
+    TE.fromEither,
   );
 
 export const getMongoCollection = <T = Document>(
@@ -35,7 +37,7 @@ export const getMongoCollection = <T = Document>(
   pipe(
     TE.tryCatch(
       () => db.listCollections({ name: collectionName }).toArray(),
-      () => new Error(`Impossible to Get the ${collectionName} collection`),
+      () => new Error(`Impossible to get collection ${collectionName}`),
     ),
     TE.map(AR.head),
     TE.chain(
@@ -54,7 +56,7 @@ export const getOrCreateMongoCollection = <T extends Document>(
     TE.tryCatch(
       () => db.listCollections({ name: collectionName }).toArray(),
       // eslint-disable-next-line sonarjs/no-identical-functions
-      () => new Error(`Impossible to Get the ${collectionName} collection`),
+      () => new Error(`Impossible to get collection ${collectionName}`),
     ),
     TE.map(AR.head),
     TE.chain(
@@ -87,7 +89,7 @@ export const findDocumentByID = (
       },
       () =>
         new Error(
-          `Unable to get the the document with ID ${id} from collection ${collection.namespace}`,
+          `Impossible to get item ${id} from collection ${collection.namespace}`,
         ),
     ),
     TE.map(O.fromNullable),

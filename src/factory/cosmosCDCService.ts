@@ -1,7 +1,5 @@
 /* eslint-disable max-params */
-/* eslint-disable @typescript-eslint/no-shadow */
 import { Container, CosmosClient } from "@azure/cosmos";
-import { KafkaProducerCompact } from "@pagopa/fp-ts-kafkajs/dist/lib/KafkaProducerCompact";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
@@ -20,10 +18,12 @@ export const cosmosCDCService = {
   processChangeFeed:
     (
       client: CosmosClient,
-      database: string,
-      resource: string,
-      mqueueClient: KafkaProducerCompact<unknown>,
-      leaseResource?: string,
+      databaseName: string,
+      resourceName: string,
+      processResults: (
+        results: ReadonlyArray<unknown>,
+      ) => TE.TaskEither<Error, void>,
+      leaseResourceName?: string,
       prefix?: string,
     ) =>
     (cosmosDBServiceClient: typeof cosmosDBService): TaskEither<Error, void> =>
@@ -31,17 +31,17 @@ export const cosmosCDCService = {
         TE.Do,
         // Connecting to the database
         TE.bind("database", () =>
-          cosmosDBServiceClient.getDatabase(client, database),
+          cosmosDBServiceClient.getDatabase(client, databaseName),
         ),
         // Checking that the container {resource} exists
         TE.bind("container", ({ database }) =>
-          cosmosDBServiceClient.getResource(database, resource),
+          cosmosDBServiceClient.getResource(database, resourceName),
         ),
         // Checking that the lease container {leaseResource} exists
         // If not, a default lease container will be created in the next steps
         TE.bind("leaseContainer", ({ database }) =>
           pipe(
-            O.fromNullable(leaseResource),
+            O.fromNullable(leaseResourceName),
             O.fold(
               () => TE.right<Error, O.Option<Container>>(O.none),
               (lease) =>
@@ -90,7 +90,7 @@ export const cosmosCDCService = {
                     container,
                     changeFeedIteratorOptions,
                     lContainer,
-                    mqueueClient,
+                    processResults,
                     prefix,
                   ),
                 ),

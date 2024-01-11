@@ -40,6 +40,8 @@ describe("cosmosCDCService", () => {
     jest.resetModules();
     jest.clearAllMocks();
   });
+
+  const processResMock = jest.fn();
   it("should process change feed successfully with lease", async () => {
     mockDBServiceClient.getDatabase.mockReturnValueOnce(TE.right(mockDatabase));
     mockDBServiceClient.getResource.mockReturnValue(TE.right(mockContainer));
@@ -56,6 +58,7 @@ describe("cosmosCDCService", () => {
       mockCosmosClient,
       "test-database",
       "test-container",
+      processResMock,
       "test-lease-container",
       "test-prefix",
     )(mockDBServiceClient)();
@@ -69,6 +72,8 @@ describe("cosmosCDCService", () => {
         changeFeedStartFrom: ChangeFeedStartFrom.Continuation("test"),
       },
       mockContainer,
+      processResMock,
+      "test-prefix",
     );
   });
 
@@ -86,6 +91,7 @@ describe("cosmosCDCService", () => {
       mockCosmosClient,
       "test-database",
       "test-container",
+      processResMock,
       "test-lease-container",
       "test-prefix",
     )(mockDBServiceClient)();
@@ -99,6 +105,8 @@ describe("cosmosCDCService", () => {
         changeFeedStartFrom: ChangeFeedStartFrom.Beginning(),
       },
       mockContainer,
+      processResMock,
+      "test-prefix",
     );
   });
 
@@ -112,6 +120,7 @@ describe("cosmosCDCService", () => {
       mockCosmosClient,
       "invalid-database",
       "invalid-container",
+      () => void 0,
     )(mockDBServiceClient)();
 
     expect(result).toEqual(left(new Error("Impossible to get the container")));

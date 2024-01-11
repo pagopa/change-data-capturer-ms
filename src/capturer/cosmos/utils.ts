@@ -5,7 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import * as T from "io-ts";
 
-const ContinuationTokenItem = T.type({
+export const ContinuationTokenItem = T.type({
   id: T.string,
   lease: T.string,
 });
