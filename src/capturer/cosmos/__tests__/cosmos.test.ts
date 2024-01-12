@@ -75,7 +75,7 @@ describe("getAndProcessChangeFeed", () => {
       {
         statusCode: StatusCodes.Created,
         continuationToken: "test-continuation-token",
-        result: { id: "test-id", lease: "test-continuation-token" },
+        result: [{ id: "test-id", lease: "test-continuation-token" }],
       },
     ]);
     upsertMock.mockReturnValueOnce(() => Promise<void>);
