@@ -12,7 +12,7 @@ module.exports = {
     "*.js",
     "Dangerfile.ts",
     "**/__integrations__/*",
-    index.ts,
+    "index.ts",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
