@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { Container, CosmosClient } from "@azure/cosmos";
+import { CosmosClient } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
@@ -10,7 +10,7 @@ import {
 } from "../capturer/cosmos/cosmos";
 import { createContainer } from "../capturer/cosmos/utils";
 import { cosmosDBService } from "./cosmosDBService";
-import { ICDCService, Item } from "./service";
+import { ICDCService } from "./service";
 
 export const LEASE_CONTAINER_NAME = "cdc-data-lease";
 
@@ -43,7 +43,7 @@ export const cosmosCDCService = {
           pipe(
             O.fromNullable(leaseResourceName),
             O.fold(
-              () => TE.right<Error, O.Option<Container>>(O.none),
+              () => TE.right(O.none),
               (lease) =>
                 pipe(
                   cosmosDBServiceClient.getResource(database, lease),
@@ -57,12 +57,12 @@ export const cosmosCDCService = {
           pipe(
             leaseContainer,
             O.fold(
-              () => TE.right<Error, O.Option<Item>>(O.none),
+              () => TE.right(O.none),
               (container) =>
                 pipe(
                   O.fromNullable(prefix),
                   O.fold(
-                    () => TE.right<Error, O.Option<Item>>(O.none),
+                    () => TE.right(O.none),
                     (id) => cosmosDBServiceClient.getItemByID(container, id),
                   ),
                 ),

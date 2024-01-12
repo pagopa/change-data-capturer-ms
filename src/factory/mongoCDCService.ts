@@ -13,21 +13,6 @@ import {
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
 
-// const extractResultsFromChange = <T extends Document>(
-//   change: ChangeStreamDocument<T>,
-// ): IResult => {
-//   switch (change.operationType) {
-//     case "insert":
-//       return { data: change.fullDocument, operationType: "insert" };
-//     case "update":
-//       return { data: change.fullDocument, operationType: "update" };
-//     case "delete":
-//       return { data: change.documentKey, operationType: "delete" };
-//     default:
-//       throw new Error(`Unsupported operation type: ${change.operationType}`);
-//   }
-// };
-
 const extractResultsFromChange = <T extends Document>(
   change: ChangeStreamDocument<T>,
 ): ReadonlyArray<unknown> => {
