@@ -5,16 +5,17 @@ import * as TE from "fp-ts/TaskEither";
 import { left, right } from "fp-ts/lib/Either";
 import * as CosmosUtils from "../../capturer/cosmos/utils";
 import { cosmosDBService } from "../cosmosDBService";
+import { ContinuationTokenItem } from "../types";
 
 const mockCosmosClient: CosmosClient = {
   databases: jest.fn(),
 } as unknown as CosmosClient;
 const mockDatabase: Database = {} as Database;
 const mockContainer: Container = {} as Container;
-const mockItem: CosmosUtils.ContinuationTokenItem = {
+const mockItem: ContinuationTokenItem = {
   id: "test",
   lease: "lease",
-} as CosmosUtils.ContinuationTokenItem;
+} as ContinuationTokenItem;
 
 jest.mock("../../capturer/cosmos/utils");
 

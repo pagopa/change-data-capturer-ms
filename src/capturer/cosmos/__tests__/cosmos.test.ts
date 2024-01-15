@@ -8,8 +8,8 @@ import {
 } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
+import { ContinuationTokenItem } from "../../../factory/types";
 import { getChangeFeedIteratorOptions, processChangeFeed } from "../cosmos";
-import { ContinuationTokenItem } from "../utils";
 
 describe("getChangeFeedIteratorOptions", () => {
   beforeEach(() => {
