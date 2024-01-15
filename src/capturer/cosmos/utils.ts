@@ -3,14 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
-import * as T from "io-ts";
-
-export const ContinuationTokenItem = T.type({
-  id: T.string,
-  lease: T.string,
-});
-
-export type ContinuationTokenItem = T.TypeOf<typeof ContinuationTokenItem>;
+import { ContinuationTokenItem } from "../../factory/types";
 
 export const cosmosConnect = (
   connectionString: string,

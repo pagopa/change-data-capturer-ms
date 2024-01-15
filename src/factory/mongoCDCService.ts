@@ -5,14 +5,13 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
-import { ContinuationTokenItem } from "../capturer/cosmos/utils";
 import {
   setMongoListenerOnEventChange,
   watchMongoCollection,
 } from "../capturer/mongo/mongo";
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
-import { ProcessResult } from "./types";
+import { ContinuationTokenItem, ProcessResult } from "./types";
 
 const extractResultsFromChange = <T extends Document>(
   change: ChangeStreamDocument<T>,
