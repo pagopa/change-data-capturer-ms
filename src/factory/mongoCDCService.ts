@@ -13,6 +13,10 @@ import {
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
 
+export type ProcessResult = (
+  results: ReadonlyArray<unknown>,
+) => TE.TaskEither<Error, void>;
+
 const extractResultsFromChange = <T extends Document>(
   change: ChangeStreamDocument<T>,
 ): ReadonlyArray<unknown> => {
@@ -30,9 +34,7 @@ const extractResultsFromChange = <T extends Document>(
 
 const adaptProcessResults =
   <T extends Document>(
-    processResults: (
-      results: ReadonlyArray<unknown>,
-    ) => TE.TaskEither<Error, void>,
+    processResults: ProcessResult,
   ): ((change: ChangeStreamDocument<T>) => void) =>
   async (change) => {
     const results = extractResultsFromChange(change);
@@ -41,9 +43,7 @@ const adaptProcessResults =
 
 export const watchChangeFeed = (
   collection: Collection,
-  processResults: (
-    results: ReadonlyArray<unknown>,
-  ) => TE.TaskEither<Error, void>,
+  processResults: ProcessResult,
   resumeToken?: string,
 ): E.Either<Error, void> =>
   pipe(
@@ -62,9 +62,7 @@ export const mongoCDCService = {
       client: MongoClient,
       databaseName: string,
       resourceName: string,
-      processResults: (
-        results: ReadonlyArray<unknown>,
-      ) => TE.TaskEither<Error, void>,
+      processResults: ProcessResult,
       leaseResourceName?: string,
       prefix?: string,
     ) =>

@@ -1,9 +1,9 @@
 import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
-import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { Collection, Db, Document, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../capturer/cosmos/utils";
+import { ProcessResult } from "./mongoCDCService";
 
 export interface IDatabaseConfig {
   readonly connection: string;
@@ -35,9 +35,7 @@ export interface ICDCService {
     client: DBClient,
     database: string,
     resource: string,
-    processResults: (
-      results: ReadonlyArray<unknown>,
-    ) => TE.TaskEither<Error, void>,
+    processResults: ProcessResult,
     leaseResource?: string,
     prefix?: string,
   ) => (DBServiceClient: IDatabaseService) => TaskEither<Error, void>;
