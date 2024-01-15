@@ -97,7 +97,13 @@ export const mongoCDCService = {
             O.flatten,
             O.toUndefined,
             (lease) =>
-              TE.fromEither(watchChangeFeed(collection, processResults, lease)),
+              TE.fromEither(
+                watchChangeFeed(
+                  collection as Collection,
+                  processResults,
+                  lease,
+                ),
+              ),
           ),
         ),
         TE.map(constVoid),

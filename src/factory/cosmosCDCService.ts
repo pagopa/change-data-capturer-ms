@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { CosmosClient } from "@azure/cosmos";
+import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
@@ -82,14 +82,15 @@ export const cosmosCDCService = {
               pipe(
                 leaseContainer,
                 O.fold(
-                  () => createContainer(database, LEASE_CONTAINER_NAME),
+                  () =>
+                    createContainer(database as Database, LEASE_CONTAINER_NAME),
                   (lContainer) => TE.right(lContainer),
                 ),
                 TE.chain((lContainer) =>
                   processChangeFeed(
-                    container,
+                    container as Container,
                     changeFeedIteratorOptions,
-                    lContainer,
+                    lContainer as Container,
                     processResults,
                     prefix,
                   ),
