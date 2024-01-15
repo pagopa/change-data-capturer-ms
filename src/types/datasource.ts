@@ -187,7 +187,7 @@ export const SelectAllDataSource = t.union([
 ]);
 export type SelectAllDataSource = t.TypeOf<typeof SelectAllDataSource>;
 
-export const DBDataSource = t.intersection([
+export const DBDataSourceConfig = t.intersection([
   t.exact(
     t.type({
       type: DBDataSourceType,
@@ -200,10 +200,37 @@ export const DBDataSource = t.intersection([
   ),
   t.union([CDCDataSource, SelectAllDataSource]),
 ]);
+export type DBDataSourceConfig = t.TypeOf<typeof DBDataSourceConfig>;
+
+export const DBDataSource = t.intersection([
+  DataSourceConnectionCommon,
+  DBDataSourceConfig,
+]);
 export type DBDataSource = t.TypeOf<typeof DBDataSource>;
 
-export const DataSource = t.intersection([
+export const QueueDataSourceQueueType = t.literal("EVENT_HUB");
+
+export type QueueDataSourceQueueType = t.TypeOf<
+  typeof QueueDataSourceQueueType
+>;
+
+export const QueueDataSourceConfig = t.exact(
+  t.type({
+    props: t.type({
+      clientId: NonEmptyString,
+      groupId: NonEmptyString,
+    }),
+    queueType: QueueDataSourceQueueType,
+    type: QueueDataSourceType,
+  }),
+);
+
+export const QueueDataSource = t.intersection([
   DataSourceConnectionCommon,
-  DBDataSource,
+  QueueDataSourceConfig,
 ]);
+
+export type QueueDataSource = t.TypeOf<typeof QueueDataSource>;
+
+export const DataSource = t.union([DBDataSource, QueueDataSource]);
 export type DataSource = t.TypeOf<typeof DataSource>;

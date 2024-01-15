@@ -6,6 +6,7 @@ import {
   DataSource,
   MongoDBType,
   PostgreSQLDBType,
+  QueueDataSource,
   SelectAllConnectionSourceType,
   SelectAllDataSource,
 } from "../datasource";
@@ -194,6 +195,49 @@ describe("SelectAllDatasource", () => {
             ),
         ),
       ),
+    );
+  });
+});
+
+describe("QueueDataSource", () => {
+  const aQueueDataSourceConfig = {
+    connectionString: "foo" as NonEmptyString,
+    type: "QUEUE",
+    queueType: "EVENT_HUB",
+    props: {
+      clientId: "queueName",
+      groupId: "us-east-1",
+    },
+  };
+
+  it("should decode a correct QueueDataSource config properly", () => {
+    pipe(
+      aQueueDataSourceConfig,
+      QueueDataSource.decode,
+      E.map((decoded) => expect(decoded).toEqual(aQueueDataSourceConfig)),
+      E.mapLeft(() => fail("Cannot decode a correct QueueDataSource")),
+    );
+  });
+
+  it("should fail while decoding an empty QueueDataSource config", () => {
+    pipe(
+      {},
+      QueueDataSource.decode,
+      E.map(() =>
+        fail("An empty QueueDataSource config should not be decoded"),
+      ),
+      E.mapLeft((errs) => expect(errs).toBeDefined()),
+    );
+  });
+
+  it("should fail while decoding an incorrect QueueDataSource config", () => {
+    pipe(
+      { ...aQueueDataSourceConfig, type: "OTHER" },
+      QueueDataSource.decode,
+      E.map(() =>
+        fail("An incorrect QueueDataSource config should not be decoded"),
+      ),
+      E.mapLeft((errs) => expect(errs).toBeDefined()),
     );
   });
 });

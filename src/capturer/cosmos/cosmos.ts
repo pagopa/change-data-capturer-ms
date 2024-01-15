@@ -8,7 +8,8 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as B from "fp-ts/boolean";
 import { pipe } from "fp-ts/lib/function";
-import { ContinuationTokenItem, upsertItem } from "./utils";
+import { ContinuationTokenItem, ProcessResult } from "../../factory/types";
+import { upsertItem } from "./utils";
 
 /**
  * Returns the options for creating a change feed iterator.
@@ -41,21 +42,11 @@ const generateCustomId = (id: string, prefix?: string): string => {
   return `${modifiedPrefix}${modifiedId}`;
 };
 
-const adaptResults = (
-  results: ReadonlyArray<unknown>,
-): ReadonlyArray<unknown> =>
-  results.map((result) => {
-    if (typeof result === "object" && result !== null) {
-      return { ...result, operationType: "insert" };
-    }
-    return result;
-  });
-
 export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
   leaseContainer: Container,
-  processResults: (results: unknown) => TE.TaskEither<Error, void>,
+  processResults: ProcessResult,
   prefix?: string,
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(async () => {
@@ -70,7 +61,7 @@ export const processChangeFeed = (
           // TODO implement a generic logic to process the document
           () =>
             pipe(
-              adaptResults(result.result),
+              result.result,
               processResults,
               TE.chain(() =>
                 upsertItem<ContinuationTokenItem>(leaseContainer, {

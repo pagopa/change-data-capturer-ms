@@ -5,13 +5,13 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
-import { ContinuationTokenItem } from "../capturer/cosmos/utils";
 import {
   setMongoListenerOnEventChange,
   watchMongoCollection,
 } from "../capturer/mongo/mongo";
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
+import { ContinuationTokenItem, ProcessResult } from "./types";
 
 const extractResultsFromChange = <T extends Document>(
   change: ChangeStreamDocument<T>,
@@ -30,9 +30,7 @@ const extractResultsFromChange = <T extends Document>(
 
 const adaptProcessResults =
   <T extends Document>(
-    processResults: (
-      results: ReadonlyArray<unknown>,
-    ) => TE.TaskEither<Error, void>,
+    processResults: ProcessResult,
   ): ((change: ChangeStreamDocument<T>) => void) =>
   async (change) => {
     const results = extractResultsFromChange(change);
@@ -41,9 +39,7 @@ const adaptProcessResults =
 
 export const watchChangeFeed = (
   collection: Collection,
-  processResults: (
-    results: ReadonlyArray<unknown>,
-  ) => TE.TaskEither<Error, void>,
+  processResults: ProcessResult,
   resumeToken?: string,
 ): E.Either<Error, void> =>
   pipe(
@@ -62,9 +58,7 @@ export const mongoCDCService = {
       client: MongoClient,
       databaseName: string,
       resourceName: string,
-      processResults: (
-        results: ReadonlyArray<unknown>,
-      ) => TE.TaskEither<Error, void>,
+      processResults: ProcessResult,
       leaseResourceName?: string,
       prefix?: string,
     ) =>
@@ -103,3 +97,4 @@ export const mongoCDCService = {
         TE.map(constVoid),
       ),
 } satisfies ICDCService;
+export { ProcessResult };
