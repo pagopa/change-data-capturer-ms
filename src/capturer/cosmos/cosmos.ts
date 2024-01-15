@@ -8,7 +8,8 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as B from "fp-ts/boolean";
 import { pipe } from "fp-ts/lib/function";
-import { ContinuationTokenItem, upsertItem } from "./utils";
+import { ContinuationTokenItem, ProcessResult } from "../../factory/types";
+import { upsertItem } from "./utils";
 
 /**
  * Returns the options for creating a change feed iterator.
@@ -45,7 +46,7 @@ export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
   leaseContainer: Container,
-  processResults: (results: unknown) => TE.TaskEither<Error, void>,
+  processResults: ProcessResult,
   prefix?: string,
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(async () => {

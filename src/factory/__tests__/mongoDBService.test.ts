@@ -3,9 +3,9 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { left, right } from "fp-ts/lib/Either";
 import { Collection, Db, MongoClient } from "mongodb";
-import { ContinuationTokenItem } from "../../capturer/cosmos/utils";
 import * as MongoUtils from "../../capturer/mongo/utils";
 import { mongoDBService } from "../mongoDBService";
+import { ContinuationTokenItem } from "../types";
 
 const mockMongoClient: MongoClient = {} as MongoClient;
 const mockDatabase: Db = {} as Db;

@@ -12,6 +12,7 @@ import {
 import { createContainer } from "../capturer/cosmos/utils";
 import { cosmosDBService } from "./cosmosDBService";
 import { ICDCService } from "./service";
+import { ProcessResult } from "./types";
 
 export const LEASE_CONTAINER_NAME = "cdc-data-lease";
 
@@ -21,9 +22,7 @@ export const cosmosCDCService = {
       client: CosmosClient,
       databaseName: string,
       resourceName: string,
-      processResults: (
-        results: ReadonlyArray<unknown>,
-      ) => TE.TaskEither<Error, void>,
+      processResults: ProcessResult,
       leaseResourceName?: string,
       prefix?: string,
     ) =>
