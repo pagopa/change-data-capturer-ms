@@ -67,9 +67,7 @@ describe("watchMongoCollection", () => {
     expect(E.isLeft(result)).toBe(true);
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
-        new Error(
-          'Impossible to watch the mockCollection collection: " Error: Watch failed',
-        ),
+        new Error("Impossible to watch the mockCollection collection"),
       );
     }
   });

@@ -47,9 +47,9 @@ export const watchMongoCollection = <T = Document>(
             ],
             watchParams,
           ),
-        (reason) =>
+        () =>
           new Error(
-            `Impossible to watch the ${collection.collectionName} collection: " ${reason}`,
+            `Impossible to watch the ${collection.collectionName} collection`,
           ),
       ),
   );

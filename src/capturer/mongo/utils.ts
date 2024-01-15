@@ -15,17 +15,19 @@ import {
 export const mongoConnect = (uri: string): TE.TaskEither<Error, MongoClient> =>
   TE.tryCatch(
     () => MongoClient.connect(uri),
-    (reason) =>
-      new Error(`Impossible to connect to MongoDB: ${String(reason)}`),
+    () => new Error(`Impossible to connect to MongoDB`),
   );
 
 export const getMongoDb = (
   client: MongoClient,
   dbName: string,
-): E.Either<Error, Db> =>
-  E.tryCatch(
-    () => client.db(dbName),
-    (reason) => new Error(`Impossible to Get the ${dbName} db: ${reason}`),
+): TE.TaskEither<Error, Db> =>
+  pipe(
+    E.tryCatch(
+      () => client.db(dbName),
+      () => new Error(`Impossible to get database ${dbName}`),
+    ),
+    TE.fromEither,
   );
 
 export const getMongoCollection = <T = Document>(
@@ -35,10 +37,7 @@ export const getMongoCollection = <T = Document>(
   pipe(
     TE.tryCatch(
       () => db.listCollections({ name: collectionName }).toArray(),
-      (reason) =>
-        new Error(
-          `Impossible to Get the ${collectionName} collection: ${reason}`,
-        ),
+      () => new Error(`Impossible to get collection ${collectionName}`),
     ),
     TE.map(AR.head),
     TE.chain(
@@ -57,10 +56,7 @@ export const getOrCreateMongoCollection = <T extends Document>(
     TE.tryCatch(
       () => db.listCollections({ name: collectionName }).toArray(),
       // eslint-disable-next-line sonarjs/no-identical-functions
-      (reason) =>
-        new Error(
-          `Impossible to Get the ${collectionName} collection: ${reason}`,
-        ),
+      () => new Error(`Impossible to get collection ${collectionName}`),
     ),
     TE.map(AR.head),
     TE.chain(
@@ -78,8 +74,7 @@ export const disconnectMongo = (
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(
     () => client.close(),
-    (reason) =>
-      new Error(`Impossible to disconnect the mongo client: ${reason}`),
+    () => new Error(`Impossible to disconnect the mongo client`),
   );
 
 export const findDocumentByID = (
@@ -92,9 +87,9 @@ export const findDocumentByID = (
         const query = { id };
         return collection.findOne(query);
       },
-      (reason) =>
+      () =>
         new Error(
-          `Unable to get the the document with ID ${id} from collection: ${reason}`,
+          `Impossible to get item ${id} from collection ${collection.namespace}`,
         ),
     ),
     TE.map(O.fromNullable),
@@ -106,5 +101,5 @@ export const insertDocument = <T>(
 ): TE.TaskEither<Error, InsertOneResult<T>> =>
   TE.tryCatch(
     () => collection.insertOne(doc),
-    (reason) => new Error(`Unable to insert the document: ${reason}`),
+    () => new Error(`Unable to insert the document`),
   );

@@ -21,5 +21,7 @@ export const createEventHubService = (
 ): E.Either<Error, IQueueService> =>
   pipe(
     getEventHubProducer(connectionString),
-    E.map((producer) => ({ produce: sendMessageEventHub(producer) })),
+    E.map((producer) => ({
+      produce: sendMessageEventHub(producer),
+    })),
   );

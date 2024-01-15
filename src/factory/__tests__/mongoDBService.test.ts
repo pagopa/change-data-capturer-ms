@@ -3,9 +3,9 @@ import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { left, right } from "fp-ts/lib/Either";
 import { Collection, Db, MongoClient } from "mongodb";
-import { ContinuationTokenItem } from "../../capturer/cosmos/utils";
 import * as MongoUtils from "../../capturer/mongo/utils";
 import { mongoDBService } from "../mongoDBService";
+import { ContinuationTokenItem } from "../types";
 
 const mockMongoClient: MongoClient = {} as MongoClient;
 const mockDatabase: Db = {} as Db;
@@ -45,21 +45,24 @@ describe("mongoDBService", () => {
     expect(result).toEqual(left(new Error("Connection error")));
   });
 
-  it("should get database successfully", () => {
-    getMongoDbSpy.mockImplementationOnce(() => right(mockDatabase));
-    const result = mongoDBService.getDatabase(mockMongoClient, "test-database");
+  it("should get database successfully", async () => {
+    getMongoDbSpy.mockImplementationOnce(() => TE.right(mockDatabase));
+    const result = await mongoDBService.getDatabase(
+      mockMongoClient,
+      "test-database",
+    )();
     expect(E.isRight(result)).toBeTruthy();
     expect(result).toEqual(right(mockDatabase));
   });
 
-  it("should handle error when getting database", () => {
+  it("should handle error when getting database", async () => {
     getMongoDbSpy.mockImplementationOnce(() =>
-      left(new Error("Database error")),
+      TE.left(new Error("Database error")),
     );
-    const result = mongoDBService.getDatabase(
+    const result = await mongoDBService.getDatabase(
       mockMongoClient,
       "invalid-database",
-    );
+    )();
     expect(E.isLeft(result)).toBeTruthy();
     expect(result).toEqual(left(new Error("Database error")));
   });

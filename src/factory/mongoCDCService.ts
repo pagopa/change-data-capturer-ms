@@ -1,48 +1,78 @@
-/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable max-params */
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
-import { Collection, MongoClient } from "mongodb";
-import { ContinuationTokenItem } from "../capturer/cosmos/utils";
+import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
 import {
   setMongoListenerOnEventChange,
   watchMongoCollection,
 } from "../capturer/mongo/mongo";
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
+import { ContinuationTokenItem, ProcessResult } from "./types";
+
+const extractResultsFromChange = <T extends Document>(
+  change: ChangeStreamDocument<T>,
+): ReadonlyArray<unknown> => {
+  switch (change.operationType) {
+    case "insert":
+      return [{ data: change.fullDocument, operationType: "insert" }];
+    case "update":
+      return [{ data: change.fullDocument, operationType: "update" }];
+    case "delete":
+      return [{ data: change.documentKey, operationType: "delete" }];
+    default:
+      throw new Error(`Unsupported operation type: ${change.operationType}`);
+  }
+};
+
+const adaptProcessResults =
+  <T extends Document>(
+    processResults: ProcessResult,
+  ): ((change: ChangeStreamDocument<T>) => void) =>
+  async (change) => {
+    const results = extractResultsFromChange(change);
+    await processResults(results)();
+  };
 
 export const watchChangeFeed = (
   collection: Collection,
+  processResults: ProcessResult,
   resumeToken?: string,
 ): E.Either<Error, void> =>
   pipe(
     watchMongoCollection(collection, resumeToken),
-    E.chain((watcher) => setMongoListenerOnEventChange(watcher, (_) => void 0)),
+    E.chain((watcher) =>
+      setMongoListenerOnEventChange(
+        watcher,
+        adaptProcessResults(processResults),
+      ),
+    ),
   );
 
 export const mongoCDCService = {
   processChangeFeed:
     (
       client: MongoClient,
-      database: string,
-      resource: string,
-      leaseResource?: string,
+      databaseName: string,
+      resourceName: string,
+      processResults: ProcessResult,
+      leaseResourceName?: string,
       prefix?: string,
     ) =>
     (mongoDBServiceClient: typeof mongoDBService): TaskEither<Error, void> =>
       pipe(
-        E.Do,
-        E.bind("database", () =>
-          mongoDBServiceClient.getDatabase(client, database),
+        TE.Do,
+        TE.bind("database", () =>
+          mongoDBServiceClient.getDatabase(client, databaseName),
         ),
-        TE.fromEither,
         TE.bind("collection", ({ database }) =>
-          mongoDBServiceClient.getResource(database, resource),
+          mongoDBServiceClient.getResource(database, resourceName),
         ),
         TE.bind("leaseCollection", ({ database }) =>
-          mongoDBServiceClient.getResource(database, leaseResource),
+          mongoDBServiceClient.getResource(database, leaseResourceName),
         ),
         TE.bind("leaseDocument", ({ leaseCollection }) =>
           mongoDBServiceClient.getItemByID(leaseCollection, prefix),
@@ -60,9 +90,11 @@ export const mongoCDCService = {
             ),
             O.flatten,
             O.toUndefined,
-            (lease) => TE.fromEither(watchChangeFeed(collection, lease)),
+            (lease) =>
+              TE.fromEither(watchChangeFeed(collection, processResults, lease)),
           ),
         ),
         TE.map(constVoid),
       ),
 } satisfies ICDCService;
+export { ProcessResult };

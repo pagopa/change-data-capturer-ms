@@ -78,13 +78,18 @@ describe("getDatabase", () => {
   });
 
   const databaseName = "dbId";
-  const databaseMock = jest.fn().mockReturnValue({ id: databaseName });
+  const readMock = jest
+    .fn()
+    .mockResolvedValue({ database: { id: databaseName } });
+  const databaseMock = jest.fn().mockReturnValue({
+    read: readMock,
+  });
   const mockCosmosClient = {
     database: databaseMock,
   } as unknown as CosmosClient;
 
-  it("should get database instance by providing db name", () => {
-    const errorOrDatabase = getDatabase(mockCosmosClient, databaseName);
+  it("should get database instance by providing db name", async () => {
+    const errorOrDatabase = await getDatabase(mockCosmosClient, databaseName)();
     expect(E.isRight(errorOrDatabase)).toBeTruthy();
     if (E.isRight(errorOrDatabase)) {
       expect(errorOrDatabase.right).toEqual({
@@ -93,12 +98,17 @@ describe("getDatabase", () => {
     }
   });
 
-  it("should get an error if something fails while getting database", () => {
+  it("should get an error if something fails while getting database", async () => {
     databaseMock.mockImplementationOnce(() => {
       throw Error("Error while getting database");
     });
-    const errorOrDatabase = getDatabase(mockCosmosClient, databaseName);
+    const errorOrDatabase = await getDatabase(mockCosmosClient, databaseName)();
     expect(E.isLeft(errorOrDatabase)).toBeTruthy();
+    if (E.isLeft(errorOrDatabase)) {
+      expect(errorOrDatabase.left).toEqual(
+        new Error(`Impossible to get database ${databaseName}`),
+      );
+    }
   });
 });
 
@@ -109,7 +119,12 @@ describe("getContainer", () => {
   });
 
   const containerName = "containerName";
-  const containerMock = jest.fn().mockReturnValue({});
+  const readMock = jest
+    .fn()
+    .mockResolvedValue({ container: { id: containerName } });
+  const containerMock = jest.fn().mockReturnValue({
+    read: readMock,
+  });
   const mockDatabase = {
     container: containerMock,
   } as unknown as Database;
@@ -117,7 +132,7 @@ describe("getContainer", () => {
     const errorOrContainer = await getContainer(mockDatabase, containerName)();
     expect(E.isRight(errorOrContainer)).toBeTruthy();
     if (E.isRight(errorOrContainer)) {
-      expect(errorOrContainer.right).toEqual({});
+      expect(errorOrContainer.right).toEqual({ id: containerName });
     }
   });
 
@@ -127,6 +142,11 @@ describe("getContainer", () => {
     });
     const errorOrContainer = await getContainer(mockDatabase, containerName)();
     expect(E.isLeft(errorOrContainer)).toBeTruthy();
+    if (E.isLeft(errorOrContainer)) {
+      expect(errorOrContainer.left).toEqual(
+        new Error(`Impossible to get container ${containerName}`),
+      );
+    }
   });
 });
 
@@ -166,7 +186,7 @@ describe("getItemById", () => {
     if (E.isLeft(result)) {
       expect(result.left).toEqual(
         new Error(
-          `Impossible to get item ${testID} from container ${testLease}: Error: Mock error`,
+          `Impossible to get item ${testID} from container ${testLease}`,
         ),
       );
     }
