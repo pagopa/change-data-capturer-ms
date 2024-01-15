@@ -41,16 +41,6 @@ const generateCustomId = (id: string, prefix?: string): string => {
   return `${modifiedPrefix}${modifiedId}`;
 };
 
-const adaptResults = (
-  results: ReadonlyArray<unknown>,
-): ReadonlyArray<unknown> =>
-  results.map((result) => {
-    if (typeof result === "object" && result !== null) {
-      return { ...result, operationType: "insert" };
-    }
-    return result;
-  });
-
 export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
@@ -59,9 +49,13 @@ export const processChangeFeed = (
   prefix?: string,
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(async () => {
-    for await (const result of changeFeedContainer.items
-      .getChangeFeedIterator(changeFeedIteratorOptions)
-      .getAsyncIterator()) {
+    const items = changeFeedContainer.items;
+    const feedIteratorOptions = items.getChangeFeedIterator(
+      changeFeedIteratorOptions,
+    );
+
+    const feedIterator = feedIteratorOptions.getAsyncIterator();
+    for await (const result of feedIterator) {
       await pipe(
         result.statusCode === StatusCodes.NotModified,
         B.fold(
@@ -70,7 +64,7 @@ export const processChangeFeed = (
           // TODO implement a generic logic to process the document
           () =>
             pipe(
-              adaptResults(result.result),
+              result.result,
               processResults,
               TE.chain(() =>
                 upsertItem<ContinuationTokenItem>(leaseContainer, {

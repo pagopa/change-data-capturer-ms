@@ -1,7 +1,9 @@
-import { CosmosClient } from "@azure/cosmos";
+import { Container, CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
+import { upsertItem } from "../../../src/capturer/cosmos/utils";
+import { LEASE_CONTAINER_NAME } from "../../../src/factory/cosmosCDCService";
 import { cosmosDBService } from "../../../src/factory/cosmosDBService";
 import {
   ServiceType,
@@ -33,7 +35,7 @@ afterAll(async () => {
   await pipe(
     deleteDatabase(client, COSMOSDB_NAME),
     TE.getOrElse((e) => {
-      throw Error(`Cannot delete db ${JSON.stringify(e)}`);
+      throw Error(`Cannot delete db ${e.message}`);
     }),
   )();
 });
@@ -41,8 +43,10 @@ afterAll(async () => {
 const processResults = (
   _: ReadonlyArray<unknown>,
 ): TE.TaskEither<Error, void> => {
+  console.log("ciao");
   return TE.right(void 0);
 };
+
 describe("cosmosCDCService", () => {
   it("should handle incorrect ConnectionString - Error", async () => {
     const result = await service.processChangeFeed(
@@ -94,4 +98,108 @@ describe("cosmosCDCService", () => {
       ),
     );
   });
+
+  it("should process table content starting from beginning - no continuation token, default lease container", async () => {
+    // Checking that no lease container exists
+    const container = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+    )();
+
+    expect(container).toEqual(
+      E.left(new Error(`Impossible to get container ${LEASE_CONTAINER_NAME}`)),
+    );
+
+    const result = await service.processChangeFeed(
+      client,
+      COSMOSDB_NAME,
+      COSMOS_COLLECTION_NAME,
+      processResults,
+    )(cosmosDBService)();
+    expect(E.isRight(result)).toBeTruthy();
+
+    //Checking that the lease container has been created and the continuation token has been stored
+    const item = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+      TE.chain((container) => service.getItemByID(container, COSMOSDB_NAME)),
+    )();
+    expect(E.isRight(item)).toBeTruthy();
+  }, 60000);
+
+  it("should process table content starting from continuation token", async () => {
+    // Checking that no lease container exists
+    const item = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+      TE.chain((container) => service.getItemByID(container, COSMOSDB_NAME)),
+    )();
+    expect(E.isRight(item)).toBeTruthy();
+
+    const result = await service.processChangeFeed(
+      client,
+      COSMOSDB_NAME,
+      COSMOS_COLLECTION_NAME,
+      processResults,
+    )(cosmosDBService)();
+    expect(E.isRight(result)).toBeTruthy();
+
+    const continuationToken = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+      TE.chain((container) => service.getItemByID(container, COSMOSDB_NAME)),
+    )();
+
+    expect(E.isRight(continuationToken)).toBeTruthy();
+    expect(item).toEqual(continuationToken);
+  }, 60000);
+
+  it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
+    const item = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+      TE.chain((container) => service.getItemByID(container, COSMOSDB_NAME)),
+    )();
+    expect(E.isRight(item)).toBeTruthy();
+
+    const insert = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+      TE.chain((container) =>
+        upsertItem(container as Container, { id: "test" }),
+      ),
+    )();
+    expect(E.isRight(insert)).toBeTruthy();
+
+    const result = await service.processChangeFeed(
+      client,
+      COSMOSDB_NAME,
+      COSMOS_COLLECTION_NAME,
+      processResults,
+    )(cosmosDBService)();
+    expect(E.isRight(result)).toBeTruthy();
+
+    const continuationToken = await pipe(
+      service.getDatabase(client, COSMOSDB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+      ),
+      TE.chain((container) => service.getItemByID(container, COSMOSDB_NAME)),
+    )();
+
+    expect(E.isRight(continuationToken)).toBeTruthy();
+    expect(item).not.toEqual(continuationToken);
+  }, 60000);
 });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable max-params */
 import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
