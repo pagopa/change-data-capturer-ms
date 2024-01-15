@@ -8,7 +8,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as B from "fp-ts/boolean";
 import { pipe } from "fp-ts/lib/function";
-import { ProcessResult } from "../../factory/mongoCDCService";
+import { ProcessResult } from "../../factory/types";
 import { ContinuationTokenItem, upsertItem } from "./utils";
 
 /**

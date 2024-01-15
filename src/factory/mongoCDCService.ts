@@ -12,10 +12,7 @@ import {
 } from "../capturer/mongo/mongo";
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
-
-export type ProcessResult = (
-  results: ReadonlyArray<unknown>,
-) => TE.TaskEither<Error, void>;
+import { ProcessResult } from "./types";
 
 const extractResultsFromChange = <T extends Document>(
   change: ChangeStreamDocument<T>,
@@ -101,3 +98,4 @@ export const mongoCDCService = {
         TE.map(constVoid),
       ),
 } satisfies ICDCService;
+export { ProcessResult };

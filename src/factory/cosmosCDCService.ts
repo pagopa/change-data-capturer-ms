@@ -10,8 +10,8 @@ import {
 } from "../capturer/cosmos/cosmos";
 import { createContainer } from "../capturer/cosmos/utils";
 import { cosmosDBService } from "./cosmosDBService";
-import { ProcessResult } from "./mongoCDCService";
 import { ICDCService } from "./service";
+import { ProcessResult } from "./types";
 
 export const LEASE_CONTAINER_NAME = "cdc-data-lease";
 

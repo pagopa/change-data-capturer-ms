@@ -3,8 +3,7 @@ import * as O from "fp-ts/Option";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { Collection, Db, Document, MongoClient } from "mongodb";
 import { ContinuationTokenItem } from "../capturer/cosmos/utils";
-import { ProcessResult } from "./mongoCDCService";
-
+import { ProcessResult } from "./types";
 export interface IDatabaseConfig {
   readonly connection: string;
 }
