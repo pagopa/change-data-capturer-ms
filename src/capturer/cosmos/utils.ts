@@ -66,13 +66,23 @@ export const getItemByID = (
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>
   pipe(
     TE.tryCatch(
-      () => container.item(id, id).read(),
+      () => container.item(id).read(),
       () =>
         new Error(
           `Impossible to get item ${id} from container ${container.id}`,
         ),
     ),
     TE.map((resp) =>
-      pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither),
+      pipe(
+        resp.resource,
+        ContinuationTokenItem.decode,
+        E.mapLeft(
+          (error) =>
+            new Error(
+              `Impossible to decode item ${id} - ${JSON.stringify(error)}`,
+            ),
+        ),
+        O.fromEither,
+      ),
     ),
   );

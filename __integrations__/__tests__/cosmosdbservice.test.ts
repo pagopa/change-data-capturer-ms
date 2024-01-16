@@ -5,29 +5,35 @@ import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { ServiceType, createDatabaseService } from "../../src/factory/factory";
 import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../env";
-import { COSMOS_COLLECTION_NAME, ID } from "../utils/cosmos";
+import {
+  COSMOS_COLLECTION_NAME,
+  ID,
+  createCosmosDbAndCollections,
+  deleteDatabase,
+} from "../utils/cosmos";
 
 const service = createDatabaseService(ServiceType.Cosmos);
 const client = new CosmosClient(COSMOSDB_CONNECTION_STRING);
-// beforeAll(async () => {
-//   await pipe(
-//     createCosmosDbAndCollections(client, COSMOSDB_NAME),
-//     TE.getOrElse((e) => {
-//       throw Error(
-//         `Cannot initialize integration tests - ${JSON.stringify(e.message)}`,
-//       );
-//     }),
-//   )();
-// }, 60000);
 
-// afterAll(async () => {
-//   await pipe(
-//     deleteDatabase(client, COSMOSDB_NAME),
-//     TE.getOrElse((e) => {
-//       throw Error(`Cannot delete db ${JSON.stringify(e)}`);
-//     }),
-//   )();
-// });
+beforeAll(async () => {
+  await pipe(
+    createCosmosDbAndCollections(client, COSMOSDB_NAME),
+    TE.getOrElse((e) => {
+      throw Error(
+        `Cannot initialize integration tests - ${JSON.stringify(e.message)}`,
+      );
+    }),
+  )();
+}, 60000);
+
+afterAll(async () => {
+  await pipe(
+    deleteDatabase(client, COSMOSDB_NAME),
+    TE.getOrElse((e) => {
+      throw Error(`Cannot delete db ${e.message}`);
+    }),
+  )();
+});
 
 describe("connect", () => {
   it("should return error when trying to connect to a not valid cosmos endpoint", async () => {

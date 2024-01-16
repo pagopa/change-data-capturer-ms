@@ -42,6 +42,13 @@ const generateCustomId = (id: string, prefix?: string): string => {
   return `${modifiedPrefix}${modifiedId}`;
 };
 
+// eslint-disable-next-line no-var
+var shouldExitExternal = false;
+
+export const setShouldExitExternal = (value: boolean): void => {
+  shouldExitExternal = value;
+};
+
 export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
@@ -57,6 +64,9 @@ export const processChangeFeed = (
 
     const feedIterator = feedIteratorOptions.getAsyncIterator();
     for await (const result of feedIterator) {
+      if (shouldExitExternal) {
+        break;
+      }
       await pipe(
         result.statusCode === StatusCodes.NotModified,
         B.fold(
@@ -69,6 +79,8 @@ export const processChangeFeed = (
               processResults,
               TE.chain(() =>
                 upsertItem<ContinuationTokenItem>(leaseContainer, {
+                  // eslint-disable-next-line @typescript-eslint/naming-convention
+                  "/id": generateCustomId(changeFeedContainer.id, prefix),
                   id: generateCustomId(changeFeedContainer.id, prefix),
                   lease: result.continuationToken,
                 } as ContinuationTokenItem),
