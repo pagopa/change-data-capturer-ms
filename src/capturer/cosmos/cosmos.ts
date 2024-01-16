@@ -80,7 +80,6 @@ export const processChangeFeed = (
               TE.chain(() =>
                 upsertItem<ContinuationTokenItem>(leaseContainer, {
                   // eslint-disable-next-line @typescript-eslint/naming-convention
-                  "/id": generateCustomId(changeFeedContainer.id, prefix),
                   id: generateCustomId(changeFeedContainer.id, prefix),
                   lease: result.continuationToken,
                 } as ContinuationTokenItem),
