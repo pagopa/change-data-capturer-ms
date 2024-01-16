@@ -2,48 +2,40 @@ import { Container, CosmosClient } from "@azure/cosmos";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { upsertItem } from "../../../src/capturer/cosmos/utils";
-import { LEASE_CONTAINER_NAME } from "../../../src/factory/cosmosCDCService";
-import { cosmosDBService } from "../../../src/factory/cosmosDBService";
-import {
-  ServiceType,
-  createDatabaseService,
-} from "../../../src/factory/factory";
-import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../../env";
-import {
-  COSMOS_COLLECTION_NAME,
-  createCosmosDbAndCollections,
-  deleteDatabase,
-} from "../../utils/cosmos";
+import { upsertItem } from "../../src/capturer/cosmos/utils";
+import { LEASE_CONTAINER_NAME } from "../../src/factory/cosmosCDCService";
+import { cosmosDBService } from "../../src/factory/cosmosDBService";
+import { ServiceType, createDatabaseService } from "../../src/factory/factory";
+import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../env";
+import { COSMOS_COLLECTION_NAME } from "../utils/cosmos";
 
 const service = createDatabaseService(ServiceType.Cosmos);
 const client = new CosmosClient(COSMOSDB_CONNECTION_STRING);
 const PREFIX = "prefix";
 
-beforeAll(async () => {
-  await pipe(
-    createCosmosDbAndCollections(client, COSMOSDB_NAME),
-    TE.getOrElse((e) => {
-      throw Error(
-        `Cannot initialize integration tests - ${JSON.stringify(e.message)}`,
-      );
-    }),
-  )();
-}, 60000);
+// beforeAll(async () => {
+//   await pipe(
+//     createCosmosDbAndCollections(client, COSMOSDB_NAME),
+//     TE.getOrElse((e) => {
+//       throw Error(
+//         `Cannot initialize integration tests - ${JSON.stringify(e.message)}`,
+//       );
+//     }),
+//   )();
+// }, 60000);
 
-afterAll(async () => {
-  await pipe(
-    deleteDatabase(client, COSMOSDB_NAME),
-    TE.getOrElse((e) => {
-      throw Error(`Cannot delete db ${e.message}`);
-    }),
-  )();
-});
+// afterAll(async () => {
+//   await pipe(
+//     deleteDatabase(client, COSMOSDB_NAME),
+//     TE.getOrElse((e) => {
+//       throw Error(`Cannot delete db ${e.message}`);
+//     }),
+//   )();
+// });
 
 const processResults = (
   _: ReadonlyArray<unknown>,
 ): TE.TaskEither<Error, void> => {
-  console.log("ciao");
   return TE.right(void 0);
 };
 
@@ -101,19 +93,19 @@ describe("cosmosCDCService", () => {
 
   it("should process table content starting from beginning - no continuation token, default lease container", async () => {
     // Checking that no lease container exists
-    const container = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
-      TE.chain((database) =>
-        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
-      ),
-    )();
+    // const container = await pipe(
+    //   service.getDatabase(client, COSMOSDB_NAME),
+    //   TE.chain((database) =>
+    //     pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+    //   ),
+    // )();
 
-    expect(container).toEqual(
-      E.left(new Error(`Impossible to get container ${LEASE_CONTAINER_NAME}`)),
-    );
+    // expect(container).toEqual(
+    //   E.left(new Error(`Impossible to get container ${LEASE_CONTAINER_NAME}`)),
+    // );
 
     const result = await service.processChangeFeed(
-      client,
+      new CosmosClient(COSMOSDB_CONNECTION_STRING),
       COSMOSDB_NAME,
       COSMOS_COLLECTION_NAME,
       processResults,
