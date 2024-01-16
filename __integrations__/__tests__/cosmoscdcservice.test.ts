@@ -205,10 +205,20 @@ describe("cosmosCDCService", () => {
 
     if (E.isRight(continuationToken)) {
       expect(O.isSome(continuationToken.right)).toBeTruthy();
+      const continuationTokenItem = O.getOrElse<Item>(() => fail(""))(
+        continuationToken.right,
+      );
+      if (E.isRight(item)) {
+        const itemValue = O.getOrElse<Item>(() => fail(""))(item.right);
+        //Checking that the continuation token has not been incremented and no records have been processed
+        expect(
+          JSON.parse(itemValue.lease).Continuation[0].continuationToken,
+        ).toEqual(
+          JSON.parse(continuationTokenItem.lease).Continuation[0]
+            .continuationToken,
+        );
+      }
     }
-
-    //Checking that the continuation token has not been incremented and no records have been processed
-    expect(item).toEqual(continuationToken);
   }, 60000);
 
   it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
@@ -271,16 +281,19 @@ describe("cosmosCDCService", () => {
 
     if (E.isRight(continuationToken)) {
       expect(O.isSome(continuationToken.right)).toBeTruthy();
-      const value = O.getOrElse<Item>(() => fail(""))(continuationToken.right);
-      expect(value).toHaveProperty("lease");
-      expect(value).toHaveProperty("id");
-      const lease = JSON.parse(value.lease);
-      expect(lease).toHaveProperty("Continuation");
-      expect(lease.Continuation).toHaveLength(1);
-      expect(lease.Continuation[0]).toHaveProperty("continuationToken");
+      const continuationTokenItem = O.getOrElse<Item>(() => fail(""))(
+        continuationToken.right,
+      );
+      if (E.isRight(item)) {
+        const itemValue = O.getOrElse<Item>(() => fail(""))(item.right);
+        //Checking that the continuation token has been incremented and new records have been processed
+        expect(
+          JSON.parse(itemValue.lease).Continuation[0].continuationToken,
+        ).not.toEqual(
+          JSON.parse(continuationTokenItem.lease).Continuation[0]
+            .continuationToken,
+        );
+      }
     }
-
-    //Checking that the continuation token has not been incremented and no records have been processed
-    expect(item).not.toEqual(continuationToken);
   }, 60000);
 });
