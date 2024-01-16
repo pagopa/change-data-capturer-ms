@@ -16,12 +16,15 @@ import {
   deleteDatabase,
 } from "../utils/cosmos";
 const service = createDatabaseService(ServiceType.Cosmos);
-const client = new CosmosClient(COSMOSDB_CONNECTION_STRING);
-const PREFIX = "prefix";
 
 beforeAll(async () => {
   await pipe(
-    createCosmosDbAndCollections(client, COSMOSDB_NAME),
+    cosmosDBService.connect({
+      connection: COSMOSDB_CONNECTION_STRING,
+    }),
+    TE.chain((client) =>
+      createCosmosDbAndCollections(client as CosmosClient, COSMOSDB_NAME),
+    ),
     TE.getOrElse((e) => {
       throw Error(
         `Cannot initialize integration tests - ${JSON.stringify(e.message)}`,
@@ -32,7 +35,10 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await pipe(
-    deleteDatabase(client, COSMOSDB_NAME),
+    cosmosDBService.connect({
+      connection: COSMOSDB_CONNECTION_STRING,
+    }),
+    TE.chain((client) => deleteDatabase(client as CosmosClient, COSMOSDB_NAME)),
     TE.getOrElse((e) => {
       throw Error(`Cannot delete db ${e.message}`);
     }),
@@ -63,37 +69,58 @@ describe("cosmosCDCService", () => {
   });
 
   it("should handle incorrect database name - Error", async () => {
-    const result = await service.processChangeFeed(
-      client,
-      "not-existing-database",
-      COSMOS_COLLECTION_NAME,
-      processResults,
-    )(cosmosDBService)();
+    const result = await pipe(
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) =>
+        service.processChangeFeed(
+          client,
+          "not-existing-database",
+          COSMOS_COLLECTION_NAME,
+          processResults,
+        )(cosmosDBService),
+      ),
+    )();
     expect(result).toEqual(
       E.left(new Error(`Impossible to get database not-existing-database`)),
     );
   });
 
   it("should handle incorrect container name - Error", async () => {
-    const result = await service.processChangeFeed(
-      client,
-      COSMOSDB_NAME,
-      "not-existing-collection",
-      processResults,
-    )(cosmosDBService)();
+    const result = await pipe(
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) =>
+        service.processChangeFeed(
+          client,
+          COSMOSDB_NAME,
+          "not-existing-collection",
+          processResults,
+        )(cosmosDBService),
+      ),
+    )();
     expect(result).toEqual(
       E.left(new Error(`Impossible to get container not-existing-collection`)),
     );
   });
 
   it("should handle incorrect lease container name - Error", async () => {
-    const result = await service.processChangeFeed(
-      client,
-      COSMOSDB_NAME,
-      COSMOS_COLLECTION_NAME,
-      processResults,
-      "not-existing-lease-container",
-    )(cosmosDBService)();
+    const result = await pipe(
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) =>
+        service.processChangeFeed(
+          client,
+          COSMOSDB_NAME,
+          COSMOS_COLLECTION_NAME,
+          processResults,
+          "not-existing-lease-container",
+        )(cosmosDBService),
+      ),
+    )();
     expect(result).toEqual(
       E.left(
         new Error(`Impossible to get container not-existing-lease-container`),
@@ -109,7 +136,10 @@ describe("cosmosCDCService", () => {
 
     // Checking that no lease container exists
     const container = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
       ),
@@ -135,7 +165,10 @@ describe("cosmosCDCService", () => {
     )();
 
     const item = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       // Checking that the lease container have been created
       TE.chain((database) =>
         pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
@@ -165,7 +198,10 @@ describe("cosmosCDCService", () => {
 
     // Checking that the lease container already exists
     const item = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
       ),
@@ -194,7 +230,10 @@ describe("cosmosCDCService", () => {
 
     //Getting continuation token
     const continuationToken = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
       ),
@@ -229,7 +268,10 @@ describe("cosmosCDCService", () => {
 
     // Checking that the lease container already exists and getting the continuation token
     const item = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
       ),
@@ -243,9 +285,12 @@ describe("cosmosCDCService", () => {
 
     //Inserting new item
     const insert = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
-        pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
+        pipe(service.getResource(database, COSMOS_COLLECTION_NAME)),
       ),
       TE.chain((container) =>
         upsertItem(container as Container, { id: "newItem" }),
@@ -270,7 +315,10 @@ describe("cosmosCDCService", () => {
 
     //Getting continuation token
     const continuationToken = await pipe(
-      service.getDatabase(client, COSMOSDB_NAME),
+      cosmosDBService.connect({
+        connection: COSMOSDB_CONNECTION_STRING,
+      }),
+      TE.chain((client) => service.getDatabase(client, COSMOSDB_NAME)),
       TE.chain((database) =>
         pipe(service.getResource(database, LEASE_CONTAINER_NAME)),
       ),
