@@ -11,8 +11,7 @@ export const cosmosConnect = (
   pipe(
     E.tryCatch(
       () => new CosmosClient(connectionString),
-      (reason) =>
-        new Error(`Impossible to connect to Cosmos: " ${String(reason)}`),
+      () => new Error(`Impossible to connect to Cosmos`),
     ),
   );
 

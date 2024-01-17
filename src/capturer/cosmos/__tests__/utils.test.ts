@@ -51,7 +51,7 @@ describe("cosmosConnect", () => {
 
     expect(CosmosClient).toHaveBeenCalledWith(connString);
     expect(result).toEqual(
-      E.left(new Error(`Impossible to connect to Cosmos: " ${String(error)}`)),
+      E.left(new Error(`Impossible to connect to Cosmos`)),
     );
   });
 });
