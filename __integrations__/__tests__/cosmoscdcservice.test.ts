@@ -16,15 +16,11 @@ import {
   deleteDatabase,
 } from "../utils/cosmos";
 const service = createDatabaseService(ServiceType.Cosmos);
+const cosmosClient = new CosmosClient(COSMOSDB_CONNECTION_STRING);
 
 beforeAll(async () => {
   await pipe(
-    cosmosDBService.connect({
-      connection: COSMOSDB_CONNECTION_STRING,
-    }),
-    TE.chain((client) =>
-      createCosmosDbAndCollections(client as CosmosClient, COSMOSDB_NAME),
-    ),
+    createCosmosDbAndCollections(cosmosClient, COSMOSDB_NAME),
     TE.getOrElse((e) => {
       throw Error(
         `Cannot initialize integration tests - ${JSON.stringify(e.message)}`,
@@ -35,10 +31,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await pipe(
-    cosmosDBService.connect({
-      connection: COSMOSDB_CONNECTION_STRING,
-    }),
-    TE.chain((client) => deleteDatabase(client as CosmosClient, COSMOSDB_NAME)),
+    deleteDatabase(cosmosClient, COSMOSDB_NAME),
     TE.getOrElse((e) => {
       throw Error(`Cannot delete db ${e.message}`);
     }),
