@@ -51,6 +51,7 @@ jobs:
           echo "NODE_TLS_REJECT_UNAUTHORIZED=0" >> $GITHUB_ENV
           echo "COSMOSDB_NAME=${{github.run_id}}" >> $GITHUB_ENV
           echo "COSMOSDB_CONNECTION_STRING=${{secrets.COSMOSDB_CONNECTION_STRING}}" >> $GITHUB_ENV
+          echo "MONGODB_NAME=${{github.run_id}}" >> $GITHUB_ENV
       
       - name: System tests
         run: |
