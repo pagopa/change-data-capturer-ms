@@ -56,7 +56,6 @@ jobs:
       - name: System tests
         run: |
           cd __integrations__
-          docker-compose up -d
           yarn install --immutable
           yarn test
 
