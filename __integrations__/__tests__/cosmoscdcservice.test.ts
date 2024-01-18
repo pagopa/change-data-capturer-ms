@@ -3,7 +3,6 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { setShouldExitExternal } from "../../src/capturer/cosmos/cosmos";
 import { upsertItem } from "../../src/capturer/cosmos/utils";
 import { LEASE_CONTAINER_NAME } from "../../src/factory/cosmosCDCService";
 import { cosmosDBService } from "../../src/factory/cosmosDBService";
@@ -36,10 +35,6 @@ afterAll(async () => {
       throw Error(`Cannot delete db ${e.message}`);
     }),
   )();
-});
-
-afterEach(async () => {
-  setShouldExitExternal(false);
 });
 
 const processResults = (
@@ -122,11 +117,6 @@ describe("cosmosCDCService", () => {
   });
 
   it("should process table content starting from beginning - no continuation token, default lease container", async () => {
-    //Forcing change feed processor to exit after 8 seconds
-    setTimeout(() => {
-      setShouldExitExternal(true);
-    }, 8000);
-
     // Checking that no lease container exists
     const container = await pipe(
       cosmosDBService.connect({
@@ -153,6 +143,8 @@ describe("cosmosCDCService", () => {
           COSMOSDB_NAME,
           COSMOS_COLLECTION_NAME,
           processResults,
+          undefined,
+          { timeout: 8000 },
         )(cosmosDBService),
       ),
     )();
@@ -184,11 +176,6 @@ describe("cosmosCDCService", () => {
   }, 60000);
 
   it("should process table content starting from continuation token", async () => {
-    //Forcing change feed processor to exit after 8 seconds
-    setTimeout(() => {
-      setShouldExitExternal(true);
-    }, 8000);
-
     // Checking that the lease container already exists
     const item = await pipe(
       cosmosDBService.connect({
@@ -217,6 +204,8 @@ describe("cosmosCDCService", () => {
           COSMOSDB_NAME,
           COSMOS_COLLECTION_NAME,
           processResults,
+          undefined,
+          { timeout: 8000 },
         )(cosmosDBService),
       ),
     )();
@@ -254,11 +243,6 @@ describe("cosmosCDCService", () => {
   }, 60000);
 
   it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
-    //Forcing change feed processor to exit after 8 seconds
-    setTimeout(() => {
-      setShouldExitExternal(true);
-    }, 8000);
-
     // Checking that the lease container already exists and getting the continuation token
     const item = await pipe(
       cosmosDBService.connect({
@@ -302,6 +286,8 @@ describe("cosmosCDCService", () => {
           COSMOSDB_NAME,
           COSMOS_COLLECTION_NAME,
           processResults,
+          undefined,
+          { timeout: 8000 },
         )(cosmosDBService),
       ),
     )();

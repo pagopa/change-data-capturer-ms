@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import {
   ChangeFeedIteratorOptions,
   ChangeFeedStartFrom,
@@ -42,29 +43,30 @@ const generateCustomId = (id: string, prefix?: string): string => {
   return `${modifiedPrefix}${modifiedId}`;
 };
 
-// eslint-disable-next-line no-var
-var shouldExitExternal = false;
-
-export const setShouldExitExternal = (value: boolean): void => {
-  shouldExitExternal = value;
-};
-
+export interface IOpts {
+  readonly prefix?: string;
+  readonly timeout?: number;
+}
 export const processChangeFeed = (
   changeFeedContainer: Container,
   changeFeedIteratorOptions: ChangeFeedIteratorOptions,
   leaseContainer: Container,
   processResults: ProcessResult,
-  prefix?: string,
+  opts?: IOpts,
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(async () => {
     const items = changeFeedContainer.items;
+    var mustEndLoop = false;
+    if (opts?.timeout > 0) {
+      setTimeout(() => (mustEndLoop = true), opts.timeout);
+    }
     const feedIteratorOptions = items.getChangeFeedIterator(
       changeFeedIteratorOptions,
     );
 
     const feedIterator = feedIteratorOptions.getAsyncIterator();
     for await (const result of feedIterator) {
-      if (shouldExitExternal) {
+      if (mustEndLoop) {
         break;
       }
       await pipe(
@@ -80,7 +82,7 @@ export const processChangeFeed = (
               TE.chain(() =>
                 upsertItem<ContinuationTokenItem>(leaseContainer, {
                   // eslint-disable-next-line @typescript-eslint/naming-convention
-                  id: generateCustomId(changeFeedContainer.id, prefix),
+                  id: generateCustomId(changeFeedContainer.id, opts?.prefix),
                   lease: result.continuationToken,
                 } as ContinuationTokenItem),
               ),

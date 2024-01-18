@@ -56,7 +56,6 @@ jobs:
         run: |
           cd __integrations__
           yarn install --immutable
-          yarn test __tests__/cosmosdbservice.test.ts
-          yarn test __tests__/cosmoscdcservice.test.ts
+          yarn test
 
       

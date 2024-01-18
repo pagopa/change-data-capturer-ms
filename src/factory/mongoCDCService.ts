@@ -5,6 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
+import { IOpts } from "../capturer/cosmos/cosmos";
 import {
   setMongoListenerOnEventChange,
   watchMongoCollection,
@@ -60,7 +61,7 @@ export const mongoCDCService = {
       resourceName: string,
       processResults: ProcessResult,
       leaseResourceName?: string,
-      prefix?: string,
+      opts?: IOpts,
     ) =>
     (mongoDBServiceClient: typeof mongoDBService): TaskEither<Error, void> =>
       pipe(
@@ -75,7 +76,7 @@ export const mongoCDCService = {
           mongoDBServiceClient.getResource(database, leaseResourceName),
         ),
         TE.bind("leaseDocument", ({ leaseCollection }) =>
-          mongoDBServiceClient.getItemByID(leaseCollection, prefix),
+          mongoDBServiceClient.getItemByID(leaseCollection, opts?.prefix),
         ),
         TE.chain(({ collection, leaseDocument }) =>
           pipe(

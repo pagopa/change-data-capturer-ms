@@ -6,6 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import {
+  IOpts,
   getChangeFeedIteratorOptions,
   processChangeFeed,
 } from "../capturer/cosmos/cosmos";
@@ -16,7 +17,7 @@ import { ProcessResult } from "./types";
 
 export const LEASE_CONTAINER_NAME = "cdc-data-lease";
 
-export const cosmosCDCService = {
+export const cosmosCDCService: ICDCService = {
   processChangeFeed:
     (
       client: CosmosClient,
@@ -24,7 +25,7 @@ export const cosmosCDCService = {
       resourceName: string,
       processResults: ProcessResult,
       leaseResourceName?: string,
-      prefix?: string,
+      opts?: IOpts,
     ) =>
     (cosmosDBServiceClient: typeof cosmosDBService): TaskEither<Error, void> =>
       pipe(
@@ -60,7 +61,7 @@ export const cosmosCDCService = {
               () => TE.right(O.none),
               (container) =>
                 pipe(
-                  O.fromNullable(prefix),
+                  O.fromNullable(opts?.prefix),
                   O.fold(
                     () => TE.right(O.none),
                     (id) => cosmosDBServiceClient.getItemByID(container, id),
@@ -92,7 +93,7 @@ export const cosmosCDCService = {
                     changeFeedIteratorOptions,
                     lContainer as Container,
                     processResults,
-                    prefix,
+                    opts,
                   ),
                 ),
               ),
