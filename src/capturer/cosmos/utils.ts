@@ -3,6 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { ContinuationTokenItem } from "../../factory/types";
 
 export const cosmosConnect = (
@@ -77,9 +78,11 @@ export const getItemByID = (
         resp.resource,
         ContinuationTokenItem.decode,
         E.mapLeft(
-          (error) =>
+          (errors) =>
             new Error(
-              `Impossible to decode item ${id} - ${JSON.stringify(error)}`,
+              `Impossible to decode item ${id} - ${errorsToReadableMessages(
+                errors,
+              )}`,
             ),
         ),
         O.fromEither,
