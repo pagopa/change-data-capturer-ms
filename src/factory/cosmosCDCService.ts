@@ -61,7 +61,8 @@ export const cosmosCDCService: ICDCService = {
               () => TE.right(O.none),
               (container) =>
                 pipe(
-                  O.fromNullable(opts?.prefix),
+                  O.fromNullable(opts),
+                  O.chainNullableK((options) => options.prefix),
                   O.fold(
                     () => TE.right(O.none),
                     (id) => cosmosDBServiceClient.getItemByID(container, id),

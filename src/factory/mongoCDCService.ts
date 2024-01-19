@@ -81,7 +81,7 @@ export const mongoCDCService = {
         TE.chain(({ collection, leaseDocument }) =>
           pipe(
             leaseDocument,
-            O.map(
+            O.chain(
               flow(
                 ContinuationTokenItem.decode,
                 E.mapLeft((errs) => Error(String(errs.join("|")))),
@@ -89,11 +89,11 @@ export const mongoCDCService = {
                 O.fromEither,
               ),
             ),
-            O.flatten,
             O.toUndefined,
             (lease) =>
               TE.fromEither(
                 watchChangeFeed(
+                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                   collection as Collection,
                   processResults,
                   lease,

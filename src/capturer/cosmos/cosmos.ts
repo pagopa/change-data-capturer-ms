@@ -6,9 +6,10 @@ import {
   StatusCodes,
 } from "@azure/cosmos";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import * as B from "fp-ts/boolean";
-import { pipe } from "fp-ts/lib/function";
+import { constVoid, pipe } from "fp-ts/lib/function";
 import { ContinuationTokenItem, ProcessResult } from "../../factory/types";
 import { upsertItem } from "./utils";
 
@@ -57,9 +58,17 @@ export const processChangeFeed = (
   TE.tryCatch(async () => {
     const items = changeFeedContainer.items;
     var mustEndLoop = false;
-    if (opts?.timeout > 0) {
-      setTimeout(() => (mustEndLoop = true), opts.timeout);
-    }
+    pipe(
+      opts,
+      O.fromNullable,
+      O.chainNullableK((options) => options.timeout),
+      O.chain(O.fromPredicate((timeout) => timeout > 0)),
+      O.map((timeoutMillis) =>
+        setTimeout(() => (mustEndLoop = true), timeoutMillis),
+      ),
+      O.getOrElseW(constVoid),
+    );
+
     const feedIteratorOptions = items.getChangeFeedIterator(
       changeFeedIteratorOptions,
     );
@@ -82,7 +91,15 @@ export const processChangeFeed = (
               TE.chain(() =>
                 upsertItem<ContinuationTokenItem>(leaseContainer, {
                   // eslint-disable-next-line @typescript-eslint/naming-convention
-                  id: generateCustomId(changeFeedContainer.id, opts?.prefix),
+                  id: generateCustomId(
+                    changeFeedContainer.id,
+                    pipe(
+                      opts,
+                      O.fromNullable,
+                      O.chainNullableK((options) => options.prefix),
+                      O.toUndefined,
+                    ),
+                  ),
                   lease: result.continuationToken,
                 } as ContinuationTokenItem),
               ),
