@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: "./environments/env.datasources" });
+dotenv.config({ path: "./environments/.env" });
 
 export const COSMOSDB_URI = process.env.COSMOSDB_URI;
 export const COSMOSDB_KEY = process.env.COSMOSDB_KEY;
