@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable max-params */
-import { CosmosClient } from "@azure/cosmos";
+import { Container, CosmosClient, Database } from "@azure/cosmos";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import {
+  IOpts,
   getChangeFeedIteratorOptions,
   processChangeFeed,
 } from "../capturer/cosmos/cosmos";
@@ -15,7 +17,7 @@ import { ProcessResult } from "./types";
 
 export const LEASE_CONTAINER_NAME = "cdc-data-lease";
 
-export const cosmosCDCService = {
+export const cosmosCDCService: ICDCService = {
   processChangeFeed:
     (
       client: CosmosClient,
@@ -23,7 +25,7 @@ export const cosmosCDCService = {
       resourceName: string,
       processResults: ProcessResult,
       leaseResourceName?: string,
-      prefix?: string,
+      opts?: IOpts,
     ) =>
     (cosmosDBServiceClient: typeof cosmosDBService): TaskEither<Error, void> =>
       pipe(
@@ -59,7 +61,8 @@ export const cosmosCDCService = {
               () => TE.right(O.none),
               (container) =>
                 pipe(
-                  O.fromNullable(prefix),
+                  O.fromNullable(opts),
+                  O.chainNullableK((options) => options.prefix),
                   O.fold(
                     () => TE.right(O.none),
                     (id) => cosmosDBServiceClient.getItemByID(container, id),
@@ -81,16 +84,17 @@ export const cosmosCDCService = {
               pipe(
                 leaseContainer,
                 O.fold(
-                  () => createContainer(database, LEASE_CONTAINER_NAME),
+                  () =>
+                    createContainer(database as Database, LEASE_CONTAINER_NAME),
                   (lContainer) => TE.right(lContainer),
                 ),
                 TE.chain((lContainer) =>
                   processChangeFeed(
-                    container,
+                    container as Container,
                     changeFeedIteratorOptions,
-                    lContainer,
+                    lContainer as Container,
                     processResults,
-                    prefix,
+                    opts,
                   ),
                 ),
               ),

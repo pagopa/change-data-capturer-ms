@@ -5,6 +5,8 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
+import { IOpts } from "../capturer/cosmos/cosmos";
 import {
   setMongoListenerOnEventChange,
   watchMongoCollection,
@@ -60,7 +62,7 @@ export const mongoCDCService = {
       resourceName: string,
       processResults: ProcessResult,
       leaseResourceName?: string,
-      prefix?: string,
+      opts?: IOpts,
     ) =>
     (mongoDBServiceClient: typeof mongoDBService): TaskEither<Error, void> =>
       pipe(
@@ -75,23 +77,38 @@ export const mongoCDCService = {
           mongoDBServiceClient.getResource(database, leaseResourceName),
         ),
         TE.bind("leaseDocument", ({ leaseCollection }) =>
-          mongoDBServiceClient.getItemByID(leaseCollection, prefix),
+          mongoDBServiceClient.getItemByID(
+            leaseCollection,
+            pipe(
+              opts,
+              O.fromNullable,
+              O.chainNullableK((options) => options.prefix),
+              O.toUndefined,
+            ),
+          ),
         ),
         TE.chain(({ collection, leaseDocument }) =>
           pipe(
             leaseDocument,
-            O.map(
+            O.chain(
               flow(
                 ContinuationTokenItem.decode,
-                E.mapLeft((errs) => Error(String(errs.join("|")))),
+                E.mapLeft((errs) =>
+                  Error(errorsToReadableMessages(errs).join("|")),
+                ),
                 E.map((leaseToken) => leaseToken.lease),
                 O.fromEither,
               ),
             ),
-            O.flatten,
             O.toUndefined,
             (lease) =>
-              TE.fromEither(watchChangeFeed(collection, processResults, lease)),
+              TE.fromEither(
+                watchChangeFeed(
+                  collection as Collection,
+                  processResults,
+                  lease,
+                ),
+              ),
           ),
         ),
         TE.map(constVoid),

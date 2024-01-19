@@ -7,7 +7,7 @@ import {
 } from "../capturer/mongo/utils";
 import { DBClient, IDatabaseConfig, IDatabaseService } from "./service";
 
-export const mongoDBService = {
+export const mongoDBService: IDatabaseService = {
   connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
     mongoConnect(config.connection),
   getDatabase: getMongoDb,
