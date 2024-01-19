@@ -5,6 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
 import { constVoid, flow, pipe } from "fp-ts/lib/function";
 import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { IOpts } from "../capturer/cosmos/cosmos";
 import {
   setMongoListenerOnEventChange,
@@ -76,7 +77,15 @@ export const mongoCDCService = {
           mongoDBServiceClient.getResource(database, leaseResourceName),
         ),
         TE.bind("leaseDocument", ({ leaseCollection }) =>
-          mongoDBServiceClient.getItemByID(leaseCollection, opts?.prefix),
+          mongoDBServiceClient.getItemByID(
+            leaseCollection,
+            pipe(
+              opts,
+              O.fromNullable,
+              O.chainNullableK((options) => options.prefix),
+              O.toUndefined,
+            ),
+          ),
         ),
         TE.chain(({ collection, leaseDocument }) =>
           pipe(
@@ -84,7 +93,9 @@ export const mongoCDCService = {
             O.chain(
               flow(
                 ContinuationTokenItem.decode,
-                E.mapLeft((errs) => Error(String(errs.join("|")))),
+                E.mapLeft((errs) =>
+                  Error(errorsToReadableMessages(errs).join("|")),
+                ),
                 E.map((leaseToken) => leaseToken.lease),
                 O.fromEither,
               ),
@@ -93,7 +104,6 @@ export const mongoCDCService = {
             (lease) =>
               TE.fromEither(
                 watchChangeFeed(
-                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                   collection as Collection,
                   processResults,
                   lease,
