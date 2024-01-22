@@ -55,7 +55,7 @@ describe("mongoCDCService", () => {
       "test-container",
       () => void 0,
       "test-lease-container",
-      "test-prefix",
+      { prefix: "test-prefix" },
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
@@ -72,7 +72,7 @@ describe("mongoCDCService", () => {
       "test-container",
       () => void 0,
       "test-lease-container",
-      "test-prefix",
+      { prefix: "test-prefix" },
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));

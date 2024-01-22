@@ -60,7 +60,7 @@ describe("cosmosCDCService", () => {
       "test-container",
       processResMock,
       "test-lease-container",
-      "test-prefix",
+      { prefix: "test-prefix" },
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
@@ -73,7 +73,7 @@ describe("cosmosCDCService", () => {
       },
       mockContainer,
       processResMock,
-      "test-prefix",
+      { prefix: "test-prefix" },
     );
   });
 
@@ -93,7 +93,7 @@ describe("cosmosCDCService", () => {
       "test-container",
       processResMock,
       "test-lease-container",
-      "test-prefix",
+      { prefix: "test-prefix" },
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
@@ -106,7 +106,7 @@ describe("cosmosCDCService", () => {
       },
       mockContainer,
       processResMock,
-      "test-prefix",
+      { prefix: "test-prefix" },
     );
   });
 

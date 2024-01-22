@@ -8,7 +8,7 @@ import {
 } from "../capturer/cosmos/utils";
 import { DBClient, IDatabaseConfig, IDatabaseService } from "./service";
 
-export const cosmosDBService = {
+export const cosmosDBService: IDatabaseService = {
   connect: (config: IDatabaseConfig): TE.TaskEither<Error, DBClient> =>
     pipe(cosmosConnect(config.connection), TE.fromEither),
   getDatabase,

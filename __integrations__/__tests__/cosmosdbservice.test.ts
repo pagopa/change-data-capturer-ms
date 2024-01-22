@@ -3,16 +3,14 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-
-import { ServiceType, createDatabaseService } from "../../../../src/factory/factory";
-import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../../../env";
+import { ServiceType, createDatabaseService } from "../../src/factory/factory";
+import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../env";
 import {
   COSMOS_COLLECTION_NAME,
   ID,
   createCosmosDbAndCollections,
   deleteDatabase,
-} from "../../../utils/cosmos";
-
+} from "../utils/cosmos";
 
 const service = createDatabaseService(ServiceType.Cosmos);
 const client = new CosmosClient(COSMOSDB_CONNECTION_STRING);

@@ -164,7 +164,7 @@ describe("getItemById", () => {
 
     const result = await getItemByID(mockContainer, id)();
 
-    expect(mockContainer.item).toHaveBeenCalledWith(id, id);
+    expect(mockContainer.item).toHaveBeenCalledWith(id);
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {
       expect(result.right).toEqual(
@@ -180,7 +180,7 @@ describe("getItemById", () => {
     itemReadMock.mockRejectedValueOnce(new Error("Mock error"));
     const result = await getItemByID(mockContainer, testID)();
 
-    expect(mockContainer.item).toHaveBeenCalledWith(testID, testID);
+    expect(mockContainer.item).toHaveBeenCalledWith(testID);
 
     expect(E.isLeft(result)).toBeTruthy();
     if (E.isLeft(result)) {
@@ -197,7 +197,7 @@ describe("getItemById", () => {
 
     const result = await getItemByID(mockContainer, testID)();
 
-    expect(mockContainer.item).toHaveBeenCalledWith(testID, testID);
+    expect(mockContainer.item).toHaveBeenCalledWith(testID);
 
     expect(E.isRight(result)).toBeTruthy();
     if (E.isRight(result)) {

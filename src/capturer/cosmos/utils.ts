@@ -3,6 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
 import { ContinuationTokenItem } from "../../factory/types";
 
 export const cosmosConnect = (
@@ -66,13 +67,25 @@ export const getItemByID = (
 ): TE.TaskEither<Error, O.Option<ContinuationTokenItem>> =>
   pipe(
     TE.tryCatch(
-      () => container.item(id, id).read(),
+      () => container.item(id).read(),
       () =>
         new Error(
           `Impossible to get item ${id} from container ${container.id}`,
         ),
     ),
     TE.map((resp) =>
-      pipe(resp.resource, ContinuationTokenItem.decode, O.fromEither),
+      pipe(
+        resp.resource,
+        ContinuationTokenItem.decode,
+        E.mapLeft(
+          (errors) =>
+            new Error(
+              `Impossible to decode item ${id} - ${errorsToReadableMessages(
+                errors,
+              )}`,
+            ),
+        ),
+        O.fromEither,
+      ),
     ),
   );
