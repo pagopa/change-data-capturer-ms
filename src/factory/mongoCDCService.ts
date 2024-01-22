@@ -3,45 +3,68 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { TaskEither } from "fp-ts/lib/TaskEither";
-import { constVoid, flow, pipe } from "fp-ts/lib/function";
-import { ChangeStreamDocument, Collection, MongoClient } from "mongodb";
-import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
+import { constVoid, pipe } from "fp-ts/lib/function";
+import {
+  ChangeStreamDocument,
+  ChangeStreamInsertDocument,
+  Collection,
+  Db,
+  MongoClient,
+} from "mongodb";
 import { IOpts } from "../capturer/cosmos/cosmos";
 import {
   setMongoListenerOnEventChange,
   watchMongoCollection,
 } from "../capturer/mongo/mongo";
+import {
+  getOrCreateMongoCollection,
+  insertDocument,
+} from "../capturer/mongo/utils";
 import { mongoDBService } from "./mongoDBService";
 import { ICDCService } from "./service";
-import { ContinuationTokenItem, ProcessResult } from "./types";
+import { ProcessResult } from "./types";
 
-const extractResultsFromChange = <T extends Document>(
+export const MONGO_LEASE_COLLECTION_NAME = "cdc-data-lease";
+
+const extractResultsFromChange = <T = Document>(
   change: ChangeStreamDocument<T>,
-): ReadonlyArray<unknown> => {
-  switch (change.operationType) {
-    case "insert":
-      return [{ data: change.fullDocument, operationType: "insert" }];
-    case "update":
-      return [{ data: change.fullDocument, operationType: "update" }];
-    case "delete":
-      return [{ data: change.documentKey, operationType: "delete" }];
-    default:
-      throw new Error(`Unsupported operation type: ${change.operationType}`);
-  }
-};
-
+): ReadonlyArray<unknown> =>
+  // switch (change?.operationType) {
+  //   case "insert":
+  //     return [{ data: change.fullDocument, operationType: "insert" }];
+  //   case "update":
+  //     return [{ data: change.fullDocument, operationType: "update" }];
+  //   case "delete":
+  //     return [{ data: change.documentKey, operationType: "delete" }];
+  //   default:
+  //     throw new Error(`Unsupported operation type: ${change.operationType}`);
+  // }
+  [{ data: change as ChangeStreamInsertDocument<T>, operationType: "insert" }];
 const adaptProcessResults =
-  <T extends Document>(
+  (
     processResults: ProcessResult,
-  ): ((change: ChangeStreamDocument<T>) => void) =>
+    leaseCollection: Collection,
+    collection: Collection,
+  ): (<T = Document>(change: ChangeStreamDocument<T>) => void) =>
   async (change) => {
-    const results = extractResultsFromChange(change);
-    await processResults(results)();
+    await pipe(
+      change,
+      extractResultsFromChange,
+      processResults,
+      TE.chain(() =>
+        insertDocument(leaseCollection, {
+          id: collection.collectionName,
+          // eslint-disable-next-line no-underscore-dangle
+          lease: change._id,
+        }),
+      ),
+    )();
   };
 
 export const watchChangeFeed = (
   collection: Collection,
   processResults: ProcessResult,
+  leaseCollection: Collection,
   resumeToken?: string,
 ): E.Either<Error, void> =>
   pipe(
@@ -49,9 +72,10 @@ export const watchChangeFeed = (
     E.chain((watcher) =>
       setMongoListenerOnEventChange(
         watcher,
-        adaptProcessResults(processResults),
+        adaptProcessResults(processResults, leaseCollection, collection),
       ),
     ),
+    E.map(constVoid),
   );
 
 export const mongoCDCService = {
@@ -73,45 +97,68 @@ export const mongoCDCService = {
         TE.bind("collection", ({ database }) =>
           mongoDBServiceClient.getResource(database, resourceName),
         ),
+        // Checking that the lease collection {leaseResourceName} exists
+        // If not, a default lease container will be created in the next steps
         TE.bind("leaseCollection", ({ database }) =>
-          mongoDBServiceClient.getResource(database, leaseResourceName),
-        ),
-        TE.bind("leaseDocument", ({ leaseCollection }) =>
-          mongoDBServiceClient.getItemByID(
-            leaseCollection,
-            pipe(
-              opts,
-              O.fromNullable,
-              O.chainNullableK((options) => options.prefix),
-              O.toUndefined,
-            ),
-          ),
-        ),
-        TE.chain(({ collection, leaseDocument }) =>
           pipe(
-            leaseDocument,
-            O.chain(
-              flow(
-                ContinuationTokenItem.decode,
-                E.mapLeft((errs) =>
-                  Error(errorsToReadableMessages(errs).join("|")),
+            O.fromNullable(leaseResourceName),
+            O.fold(
+              () => TE.right(O.none),
+              (lease) =>
+                pipe(
+                  mongoDBServiceClient.getResource(database, lease),
+                  TE.map((lcontainer) => O.some(lcontainer)),
                 ),
-                E.map((leaseToken) => leaseToken.lease),
-                O.fromEither,
+            ),
+          ),
+        ),
+        // Checking from the lease container {leaseResourceName that there is a continuationToken stored
+        TE.bind("continuationToken", ({ leaseCollection }) =>
+          pipe(
+            leaseCollection,
+            O.fold(
+              () => TE.right(O.none),
+              (container) =>
+                pipe(
+                  O.fromNullable(opts),
+                  O.chainNullableK((options) => options.prefix),
+                  O.fold(
+                    () => TE.right(O.none),
+                    (id) => mongoDBServiceClient.getItemByID(container, id),
+                  ),
+                ),
+            ),
+          ),
+        ),
+        TE.chain(
+          ({ collection, continuationToken, leaseCollection, database }) =>
+            pipe(
+              leaseCollection,
+              O.fold(
+                () =>
+                  getOrCreateMongoCollection(
+                    database as Db,
+                    MONGO_LEASE_COLLECTION_NAME,
+                  ),
+                (lContainer) => TE.right(lContainer),
+              ),
+              TE.chain((lContainer) =>
+                pipe(
+                  watchChangeFeed(
+                    collection as Collection,
+                    processResults,
+                    lContainer as Collection,
+                    pipe(
+                      continuationToken,
+                      O.map((token) => token.lease),
+                      O.toUndefined,
+                    ),
+                  ),
+                  TE.fromEither,
+                ),
               ),
             ),
-            O.toUndefined,
-            (lease) =>
-              TE.fromEither(
-                watchChangeFeed(
-                  collection as Collection,
-                  processResults,
-                  lease,
-                ),
-              ),
-          ),
         ),
         TE.map(constVoid),
       ),
 } satisfies ICDCService;
-export { ProcessResult };

@@ -54,11 +54,11 @@ export const watchMongoCollection = <T = Document>(
       ),
   );
 
-export const setMongoListenerOnEventChange = <T extends Document>(
+export const setMongoListenerOnEventChange = <T = Document>(
   changeStream: ChangeStream<T, ChangeStreamDocument<T>>,
   listener: (change: ChangeStreamDocument<T>) => void,
-): E.Either<Error, void> =>
+): E.Either<Error, ChangeStream<T, ChangeStreamDocument<T>>> =>
   E.tryCatch(
-    () => void changeStream.on("change", listener),
+    () => changeStream.on("change", listener),
     (reason) => new Error(`Impossible to set the listener: " ${reason}`),
   );
