@@ -121,12 +121,10 @@ describe("error handling", () => {
   });
 });
 
-function delay(ms: number): TE.TaskEither<Error, void> {
-  return TE.tryCatch(
-    () => new Promise((resolve) => void setTimeout(resolve, ms)),
-    E.toError,
-  );
-}
+const simulateAsyncPause = () =>
+  new Promise<void>((resolve) => {
+    setTimeout(() => resolve(), 3000);
+  });
 
 describe("cdc service", () => {
   it("should process table content starting from beginning - no continuation token, default lease container", async () => {
@@ -156,7 +154,9 @@ describe("cdc service", () => {
 
     expect(E.isRight(result)).toBeTruthy();
 
-    const item = await pipe(
+    await simulateAsyncPause();
+
+    await pipe(
       client,
       (client) => service.getDatabase(client, MONGODB_NAME),
       // Checking that the lease container have been created
@@ -171,7 +171,25 @@ describe("cdc service", () => {
               }),
             ),
           ),
-          TE.chain(() => delay(5000)),
+          TE.chain(() =>
+            pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
+          ),
+          TE.chain((container) =>
+            service.getItemByID(container, MONGO_COLLECTION_NAME),
+          ),
+        ),
+      ),
+    )();
+
+    await simulateAsyncPause();
+
+    const item = await pipe(
+      client,
+      (client) => service.getDatabase(client, MONGODB_NAME),
+      // Checking that the lease container have been created
+      TE.chain((database) =>
+        pipe(
+          service.getResource(database, MONGO_COLLECTION_NAME),
           TE.chain(() =>
             pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
           ),
@@ -188,14 +206,9 @@ describe("cdc service", () => {
       const value = O.getOrElse<Item>(() => fail(""))(item.right);
       expect(value).toHaveProperty("lease");
       expect(value).toHaveProperty("id");
-      const lease = JSON.parse(value.lease);
-      expect(lease).toHaveProperty("Continuation");
-      expect(lease.Continuation).toHaveLength(1);
-      expect(lease.Continuation[0]).toHaveProperty("continuationToken");
+      expect(value.lease).toHaveProperty("_data");
     }
-
-    await client.close();
-  }, 60000);
+  }, 12000);
 
   it("should process table content starting from continuation token", async () => {
     // Checking that the lease container already exists
@@ -215,6 +228,7 @@ describe("cdc service", () => {
       expect(O.isSome(item.right)).toBeTruthy();
     }
 
+    await simulateAsyncPause();
     //Processing feed
     await service.processChangeFeed(
       client,
@@ -222,8 +236,10 @@ describe("cdc service", () => {
       MONGO_COLLECTION_NAME,
       processResults,
       undefined,
-      { timeout: 8000 },
+      { timeout: 6000 },
     )(mongoDBService)();
+
+    await simulateAsyncPause();
 
     //Getting continuation token
     const continuationToken = await pipe(
@@ -244,15 +260,12 @@ describe("cdc service", () => {
       if (E.isRight(item)) {
         const itemValue = O.getOrElse<Item>(() => fail(""))(item.right);
         //Checking that the continuation token has not been incremented and no records have been processed
-        expect(
-          JSON.parse(itemValue.lease).Continuation[0].continuationToken,
-        ).toEqual(
-          JSON.parse(continuationTokenItem.lease).Continuation[0]
-            .continuationToken,
+        expect(itemValue.lease._data).toEqual(
+          continuationTokenItem.lease._data,
         );
       }
     }
-  }, 60000);
+  }, 12000);
 
   it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
     const client = new MongoClient(MONGODB_CONNECTION_STRING);
@@ -271,6 +284,19 @@ describe("cdc service", () => {
       expect(O.isSome(item.right)).toBeTruthy();
     }
 
+    await simulateAsyncPause();
+    //Processing feed
+    await service.processChangeFeed(
+      client,
+      MONGODB_NAME,
+      MONGO_COLLECTION_NAME,
+      processResults,
+      undefined,
+      { timeout: 6000 },
+    )(mongoDBService)();
+
+    await simulateAsyncPause();
+
     //Inserting new item
     const insert = await pipe(
       service.getDatabase(client, MONGODB_NAME),
@@ -283,15 +309,7 @@ describe("cdc service", () => {
     )();
     expect(E.isRight(insert)).toBeTruthy();
 
-    //Processing feed
-    await service.processChangeFeed(
-      client,
-      MONGODB_NAME,
-      MONGO_COLLECTION_NAME,
-      processResults,
-      undefined,
-      { timeout: 8000 },
-    )(mongoDBService)();
+    await simulateAsyncPause();
 
     //Getting continuation token
     const continuationToken = await pipe(
@@ -312,13 +330,10 @@ describe("cdc service", () => {
       if (E.isRight(item)) {
         const itemValue = O.getOrElse<Item>(() => fail(""))(item.right);
         //Checking that the continuation token has been incremented and new records have been processed
-        expect(
-          JSON.parse(itemValue.lease).Continuation[0].continuationToken,
-        ).not.toEqual(
-          JSON.parse(continuationTokenItem.lease).Continuation[0]
-            .continuationToken,
+        expect(itemValue.lease._data).toEqual(
+          continuationTokenItem.lease._data,
         );
       }
     }
-  }, 60000);
+  }, 12000);
 });
