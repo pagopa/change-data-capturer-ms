@@ -232,5 +232,42 @@ export const QueueDataSource = t.intersection([
 
 export type QueueDataSource = t.TypeOf<typeof QueueDataSource>;
 
-export const DataSource = t.union([DBDataSource, QueueDataSource]);
+export const StorageDataSourceQueueType = t.literal("STORAGE");
+
+export type StorageDataSourceQueueType = t.TypeOf<
+  typeof StorageDataSourceQueueType
+>;
+
+export const BlobStorageDataSourceType = t.literal("BLOB");
+
+export type BlobStorageDataSourceType = t.TypeOf<
+  typeof BlobStorageDataSourceType
+>;
+
+export const BlobStorageDataSourceConfig = t.exact(
+  t.type({
+    props: t.type({
+      connectionString: NonEmptyString,
+      containerName: NonEmptyString,
+      extension: NonEmptyString,
+      fileName: NonEmptyString,
+    }),
+    queueType: StorageDataSourceQueueType,
+    type: BlobStorageDataSourceType,
+  }),
+);
+
+export const BlobStorageDataSource = t.intersection([
+  DataSourceConnectionCommon,
+  QueueDataSourceConfig,
+]);
+
+export type BlobStorageDataSource = t.TypeOf<typeof BlobStorageDataSource>;
+
+export const DataSource = t.union([
+  DBDataSource,
+  QueueDataSource,
+  BlobStorageDataSource,
+]);
+
 export type DataSource = t.TypeOf<typeof DataSource>;
