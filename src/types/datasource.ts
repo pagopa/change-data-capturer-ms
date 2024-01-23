@@ -247,19 +247,18 @@ export type BlobStorageDataSourceType = t.TypeOf<
 export const BlobStorageDataSourceConfig = t.exact(
   t.type({
     props: t.type({
-      connectionString: NonEmptyString,
       containerName: NonEmptyString,
       extension: NonEmptyString,
       fileName: NonEmptyString,
     }),
-    queueType: StorageDataSourceQueueType,
-    type: BlobStorageDataSourceType,
+    storageType: BlobStorageDataSourceType,
+    type: StorageDataSourceQueueType,
   }),
 );
 
 export const BlobStorageDataSource = t.intersection([
   DataSourceConnectionCommon,
-  QueueDataSourceConfig,
+  BlobStorageDataSourceConfig,
 ]);
 
 export type BlobStorageDataSource = t.TypeOf<typeof BlobStorageDataSource>;

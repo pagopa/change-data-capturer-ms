@@ -1,5 +1,6 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
+  BlobStorageDataSource,
   CDCConnectionSourceType,
   CDCDataSource,
   CosmosDBType,
@@ -234,6 +235,50 @@ describe("QueueDataSource", () => {
     pipe(
       { ...aQueueDataSourceConfig, type: "OTHER" },
       QueueDataSource.decode,
+      E.map(() =>
+        fail("An incorrect QueueDataSource config should not be decoded"),
+      ),
+      E.mapLeft((errs) => expect(errs).toBeDefined()),
+    );
+  });
+});
+
+describe("BlobStorageDataSource", () => {
+  const aBlobStorageDataSourceConfig = {
+    connectionString: "foo" as NonEmptyString,
+    type: "STORAGE",
+    storageType: "BLOB",
+    props: {
+      containerName: "containerName",
+      extension: "extension",
+      fileName: "fileName",
+    },
+  };
+
+  it("should decode a correct QueueDataSource config properly", () => {
+    pipe(
+      aBlobStorageDataSourceConfig,
+      BlobStorageDataSource.decode,
+      E.map((decoded) => expect(decoded).toEqual(aBlobStorageDataSourceConfig)),
+      E.mapLeft(() => fail("Cannot decode a correct QueueDataSource")),
+    );
+  });
+
+  it("should fail while decoding an empty QueueDataSource config", () => {
+    pipe(
+      {},
+      BlobStorageDataSource.decode,
+      E.map(() =>
+        fail("An empty QueueDataSource config should not be decoded"),
+      ),
+      E.mapLeft((errs) => expect(errs).toBeDefined()),
+    );
+  });
+
+  it("should fail while decoding an incorrect QueueDataSource config", () => {
+    pipe(
+      { ...aBlobStorageDataSourceConfig, type: "OTHER" },
+      BlobStorageDataSource.decode,
       E.map(() =>
         fail("An incorrect QueueDataSource config should not be decoded"),
       ),
