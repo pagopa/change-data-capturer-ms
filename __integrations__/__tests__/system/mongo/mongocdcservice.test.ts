@@ -43,14 +43,6 @@ beforeAll(async () => {
 }, 10000);
 
 afterAll(async () => {
-  try {
-    for (var client of clients) {
-      await client.close();
-    }
-  } catch (err) {
-    console.error(err);
-  }
-
   await pipe(
     createMongoClient(MONGODB_CONNECTION_STRING),
     TE.chainFirst((client) =>
@@ -64,6 +56,16 @@ afterAll(async () => {
     }),
   )();
 }, 10000);
+
+afterEach(async () => {
+  try {
+    for (var client of clients) {
+      await client.close();
+    }
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 const processResults = (
   _: ReadonlyArray<unknown>,
