@@ -22,6 +22,7 @@ import {
   deleteDatabase,
 } from "../../../utils/mongo";
 const service = createDatabaseService(ServiceType.MongoDB);
+var clients: MongoClient[] = [];
 
 beforeAll(async () => {
   await pipe(
@@ -42,6 +43,12 @@ beforeAll(async () => {
 }, 10000);
 
 afterAll(async () => {
+  setTimeout(async () => {
+    for (var client of clients) {
+      await client.close();
+    }
+  }, 15000);
+
   await pipe(
     createMongoClient(MONGODB_CONNECTION_STRING),
     TE.chainFirst((client) =>
@@ -129,6 +136,7 @@ const simulateAsyncPause = () =>
 describe("cdc service", () => {
   it("should process table content starting from beginning - no continuation token, default lease container", async () => {
     const client = new MongoClient(MONGODB_CONNECTION_STRING);
+    clients.push(client);
     // Checking that no lease container exists
     const container = await pipe(
       client,
@@ -150,6 +158,8 @@ describe("cdc service", () => {
       MONGODB_NAME,
       MONGO_COLLECTION_NAME,
       processResults,
+      undefined,
+      { timeout: 10000 },
     )(mongoDBService)();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -213,6 +223,7 @@ describe("cdc service", () => {
   it("should process table content starting from continuation token", async () => {
     // Checking that the lease container already exists
     const client = new MongoClient(MONGODB_CONNECTION_STRING);
+    clients.push(client);
 
     const item = await pipe(
       service.getDatabase(client, MONGODB_NAME),
@@ -236,7 +247,7 @@ describe("cdc service", () => {
       MONGO_COLLECTION_NAME,
       processResults,
       undefined,
-      { timeout: 6000 },
+      { timeout: 10000 },
     )(mongoDBService)();
 
     await simulateAsyncPause();
@@ -269,6 +280,7 @@ describe("cdc service", () => {
 
   it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
     const client = new MongoClient(MONGODB_CONNECTION_STRING);
+    clients.push(client);
 
     // Checking that the lease container already exists and getting the continuation token
     const item = await pipe(
@@ -292,7 +304,7 @@ describe("cdc service", () => {
       MONGO_COLLECTION_NAME,
       processResults,
       undefined,
-      { timeout: 6000 },
+      { timeout: 10000 },
     )(mongoDBService)();
 
     await simulateAsyncPause();
