@@ -48,7 +48,7 @@ export const cosmosCDCService: ICDCService = {
               (lease) =>
                 pipe(
                   cosmosDBServiceClient.getResource(database, lease),
-                  TE.map((lcontainer) => O.some(lcontainer)),
+                  TE.map(O.some),
                 ),
             ),
           ),

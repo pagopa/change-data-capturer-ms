@@ -107,7 +107,7 @@ export const mongoCDCService = {
               (lease) =>
                 pipe(
                   mongoDBServiceClient.getResource(database, lease),
-                  TE.map((lcontainer) => O.some(lcontainer)),
+                  TE.map(O.some),
                 ),
             ),
           ),

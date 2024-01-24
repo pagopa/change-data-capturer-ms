@@ -46,10 +46,7 @@ export const createAllCollections = (
 ): TE.TaskEither<Error, readonly Collection[]> =>
   pipe(
     [
-      pipe(
-        createCollection(database, MONGO_COLLECTION_NAME),
-        // TE.chainFirst((collection) => insertDocument(collection, { id: ID })),
-      ),
+      pipe(createCollection(database, MONGO_COLLECTION_NAME)),
       createCollection(database, MONGO_LEASE_COLLECTION_NAME),
     ],
     RA.sequence(TE.ApplicativePar),
