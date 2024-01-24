@@ -43,8 +43,12 @@ beforeAll(async () => {
 }, 10000);
 
 afterAll(async () => {
-  for (var client of clients) {
-    await client.close();
+  try {
+    for (var client of clients) {
+      await client.close();
+    }
+  } catch (err) {
+    console.error(err);
   }
 
   await pipe(
