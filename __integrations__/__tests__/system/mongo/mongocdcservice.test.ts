@@ -43,10 +43,6 @@ beforeAll(async () => {
 }, 10000);
 
 afterAll(async () => {
-  for (var client of clients) {
-    await client.close();
-  }
-
   await pipe(
     createMongoClient(MONGODB_CONNECTION_STRING),
     TE.chainFirst((client) =>
