@@ -15,12 +15,7 @@ export const getEventHubProducer = <T>(
   pipe(
     AzureEventhubSasFromString.decode(connectionString),
     E.map((sas) => fromSas<T>(sas)),
-    E.mapLeft(
-      (error) =>
-        new Error(
-          `Error during decoding Event Hub SAS - ${JSON.stringify(error)}`,
-        ),
-    ),
+    E.mapLeft(() => new Error(`Error during decoding Event Hub SAS`)),
   );
 
 export const fromSasPlain = <T>(
