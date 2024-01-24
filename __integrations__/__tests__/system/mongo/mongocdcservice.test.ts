@@ -43,6 +43,10 @@ beforeAll(async () => {
 }, 10000);
 
 afterAll(async () => {
+  for (var client of clients) {
+    await client.close();
+  }
+
   await pipe(
     createMongoClient(MONGODB_CONNECTION_STRING),
     TE.chainFirst((client) =>
@@ -56,16 +60,6 @@ afterAll(async () => {
     }),
   )();
 }, 10000);
-
-afterEach(async () => {
-  try {
-    for (var client of clients) {
-      await client.close();
-    }
-  } catch (err) {
-    console.error(err);
-  }
-});
 
 const processResults = (
   _: ReadonlyArray<unknown>,
@@ -162,6 +156,8 @@ describe("cdc service", () => {
       MONGODB_NAME,
       MONGO_COLLECTION_NAME,
       processResults,
+      undefined,
+      { timeout: 10000 },
     )(mongoDBService)();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -249,7 +245,7 @@ describe("cdc service", () => {
       MONGO_COLLECTION_NAME,
       processResults,
       undefined,
-      { timeout: 6000 },
+      { timeout: 10000 },
     )(mongoDBService)();
 
     await simulateAsyncPause();
@@ -306,7 +302,7 @@ describe("cdc service", () => {
       MONGO_COLLECTION_NAME,
       processResults,
       undefined,
-      { timeout: 6000 },
+      { timeout: 10000 },
     )(mongoDBService)();
 
     await simulateAsyncPause();

@@ -66,9 +66,10 @@ export const watchChangeFeed = (
   processResults: ProcessResult,
   leaseCollection: Collection,
   resumeToken?: string,
+  opts?: IOpts,
 ): E.Either<Error, void> =>
   pipe(
-    watchMongoCollection(collection, resumeToken),
+    watchMongoCollection(collection, resumeToken, opts),
     E.chain((watcher) =>
       setMongoListenerOnEventChange(
         watcher,
@@ -153,6 +154,7 @@ export const mongoCDCService = {
                       O.map((token) => token.lease),
                       O.toUndefined,
                     ),
+                    opts,
                   ),
                   TE.fromEither,
                 ),

@@ -8,10 +8,12 @@ import {
   Collection,
   Document,
 } from "mongodb";
+import { IOpts } from "../cosmos/cosmos";
 
 export const watchMongoCollection = <T = Document>(
   collection: Collection<T>,
   resumeToken: string,
+  opts?: IOpts,
   params = {
     fullDocument: "updateLookup",
   },
@@ -28,8 +30,8 @@ export const watchMongoCollection = <T = Document>(
     O.getOrElseW(() => params),
     (watchParams) =>
       E.tryCatch(
-        () =>
-          collection.watch(
+        () => {
+          const docStream = collection.watch(
             [
               {
                 $match: {
@@ -46,7 +48,12 @@ export const watchMongoCollection = <T = Document>(
               },
             ],
             watchParams,
-          ),
+          );
+          if (opts?.timeout) {
+            setTimeout(() => docStream.close(), opts.timeout);
+          }
+          return docStream;
+        },
         () =>
           new Error(
             `Impossible to watch the ${collection.collectionName} collection`,
