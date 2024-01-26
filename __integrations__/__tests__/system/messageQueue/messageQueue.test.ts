@@ -60,7 +60,7 @@ const waitForConsumerToJoinGroup = (consumer: Consumer) =>
   });
 
 describe("EventHubService", () => {
-  it("Sending event to EventHub succesfully", async () => {
+  it("Sending event to EventHub successfully", async () => {
     const messageToSend = getRandomKeyValueObject();
     const result = await pipe(
       createPlainEventHubService(
@@ -74,6 +74,8 @@ describe("EventHubService", () => {
 
     expect(E.isRight(result)).toBeTruthy();
 
+    var messageToCompare = {};
+
     const kafkaConfig: KafkaConfig = {
       brokers: [MESSAGEQUEUE_CONNECTION_STRING],
     };
@@ -82,23 +84,27 @@ describe("EventHubService", () => {
       groupId: MESSAGEQUEUE_GROUPID,
     });
 
-    await consumer.connect();
-    await consumer.subscribe({
-      topic: MESSAGEQUEUE_TOPIC,
-      fromBeginning: true,
-    });
-    var messageToCompare = {};
-    consumer.run({
-      eachMessage: async ({ message }: EachMessagePayload) => {
-        messageToCompare = JSON.parse(message.value?.toString()!);
-      },
-    });
-
-    await waitForConsumerToJoinGroup(consumer);
-    await waitForMessage();
+    pipe(
+      TE.tryCatch(() => consumer.connect(), E.toError),
+      TE.tryCatch(
+        () => consumer.subscribe({ topic: MESSAGEQUEUE_TOPIC }),
+        E.toError,
+      ),
+      TE.tryCatch(
+        () =>
+          consumer.run({
+            eachMessage: async ({ message }: EachMessagePayload) => {
+              messageToCompare = JSON.parse(message.value?.toString()!);
+            },
+          }),
+        E.toError,
+      ),
+      TE.tryCatch(() => waitForConsumerToJoinGroup(consumer), E.toError),
+      TE.tryCatch(() => waitForMessage(), E.toError),
+      TE.tryCatch(() => consumer.disconnect(), E.toError),
+    );
 
     expect(messageToCompare).toEqual(messageToSend);
-    await consumer.disconnect();
   }, 25000);
 
   it("Sending event to EventHub with error", async () => {
