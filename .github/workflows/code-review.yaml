@@ -54,7 +54,10 @@ jobs:
           echo "MONGODB_NAME=${{github.run_id}}" >> $GITHUB_ENV
 
       - name: Stop containers if up 
-        run: docker-compose -f "__integrations__/docker-compose.yml" down
+        run: |
+          docker-compose -f "__integrations__/docker-compose.yml" stop
+          docker-compose -f "__integrations__/docker-compose.yml" down
+          docker system prune -a -f
       
       - name: Start containers
         run: docker-compose -f "__integrations__/docker-compose.yml" up -d
@@ -66,6 +69,9 @@ jobs:
           yarn test
 
       - name: Stop containers
-        run: docker-compose -f "docker-compose.yml" down
+        run: |
+          docker-compose -f "__integrations__/docker-compose.yml" stop
+          docker-compose -f "__integrations__/docker-compose.yml" down
+          docker system prune -a -f
 
       
