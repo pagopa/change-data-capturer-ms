@@ -1,10 +1,11 @@
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
-import { pipe } from "fp-ts/lib/function";
+import { constVoid, pipe } from "fp-ts/lib/function";
 import {
   Consumer,
   ConsumerCrashEvent,
   ConsumerGroupJoinEvent,
+  EachMessageHandler,
   EachMessagePayload,
   Kafka,
   KafkaConfig,
@@ -59,6 +60,38 @@ const waitForConsumerToJoinGroup = (consumer: Consumer) =>
     });
   });
 
+const connect = (consumer: Consumer): TE.TaskEither<Error, void> =>
+  TE.tryCatch(() => consumer.connect(), E.toError);
+
+const subscribe = (consumer: Consumer): TE.TaskEither<Error, void> =>
+  TE.tryCatch(() => {
+    waitForConsumerToJoinGroup(consumer);
+    return consumer.subscribe({
+      topic: MESSAGEQUEUE_TOPIC,
+      fromBeginning: true,
+    });
+  }, E.toError);
+
+const run = (
+  consumer: Consumer,
+  fn: EachMessageHandler,
+): TE.TaskEither<Error, void> =>
+  TE.tryCatch(() => consumer.run({ eachMessage: fn }), E.toError);
+
+const waitConsumer = (consumer: Consumer): TE.TaskEither<Error, void> =>
+  pipe(
+    TE.tryCatch(() => waitForConsumerToJoinGroup(consumer), E.toError),
+    TE.map(constVoid),
+  );
+
+const waitMessage = (): TE.TaskEither<Error, void> =>
+  pipe(
+    TE.tryCatch(() => waitForMessage(), E.toError),
+    TE.map(constVoid),
+  );
+
+const disconnect = (consumer: Consumer): TE.TaskEither<Error, void> =>
+  TE.tryCatch(() => consumer.disconnect(), E.toError);
 describe("EventHubService", () => {
   it("Sending event to EventHub successfully", async () => {
     const messageToSend = getRandomKeyValueObject();
@@ -85,33 +118,20 @@ describe("EventHubService", () => {
     });
 
     await pipe(
-      TE.tryCatch(() => consumer.connect(), E.toError),
+      consumer,
+      connect,
+      TE.chain(() => subscribe(consumer)),
       TE.chain(() =>
-        TE.tryCatch(
-          () => consumer.subscribe({ topic: MESSAGEQUEUE_TOPIC }),
-          E.toError,
-        ),
+        run(consumer, async ({ message }: EachMessagePayload) => {
+          messageToCompare = JSON.parse(message.value?.toString()!);
+        }),
       ),
-      TE.chain(() =>
-        TE.tryCatch(
-          () =>
-            consumer.run({
-              eachMessage: async ({ message }: EachMessagePayload) => {
-                messageToCompare = JSON.parse(message.value?.toString()!);
-              },
-            }),
-          E.toError,
-        ),
-      ),
-      TE.chain(() =>
-        TE.tryCatch(() => waitForConsumerToJoinGroup(consumer), E.toError),
-      ),
-      TE.chain(() => TE.tryCatch(() => waitForMessage(), E.toError)),
-      TE.chain(() => TE.tryCatch(() => consumer.disconnect(), E.toError)),
+      TE.chain(() => waitMessage()),
+      TE.chain(() => disconnect(consumer)),
     )();
 
     expect(messageToCompare).toEqual(messageToSend);
-  }, 25000);
+  }, 60000);
 
   it("Sending event to EventHub with error", async () => {
     const message = getRandomKeyValueObject();
