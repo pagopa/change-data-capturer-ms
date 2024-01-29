@@ -84,7 +84,7 @@ describe("EventHubService", () => {
       groupId: MESSAGEQUEUE_GROUPID,
     });
 
-    pipe(
+    await pipe(
       TE.tryCatch(() => consumer.connect(), E.toError),
       TE.chain(() =>
         TE.tryCatch(
@@ -108,7 +108,7 @@ describe("EventHubService", () => {
       ),
       TE.chain(() => TE.tryCatch(() => waitForMessage(), E.toError)),
       TE.chain(() => TE.tryCatch(() => consumer.disconnect(), E.toError)),
-    );
+    )();
 
     expect(messageToCompare).toEqual(messageToSend);
   }, 25000);
