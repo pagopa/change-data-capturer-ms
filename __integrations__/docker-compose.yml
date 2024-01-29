@@ -36,7 +36,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
-    hostname: kafka-broker-1
+    hostname: kafka
     ports:
       - "9092:9092"
     depends_on:
@@ -47,6 +47,23 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  
+  init-kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic ${MESSAGEQUEUE_TOPIC} --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
 
 volumes:
   mongo1_data:
