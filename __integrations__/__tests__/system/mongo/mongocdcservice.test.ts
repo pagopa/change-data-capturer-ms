@@ -40,7 +40,7 @@ beforeAll(async () => {
       );
     }),
   )();
-}, 10000);
+});
 
 afterAll(async () => {
   //setTimeout(async () => {
@@ -62,7 +62,7 @@ afterAll(async () => {
       throw Error(`Cannot delete db ${JSON.stringify(e)}`);
     }),
   )();
-}, 20000);
+});
 
 const processResults = (
   _: ReadonlyArray<unknown>,
@@ -131,7 +131,7 @@ describe("error handling", () => {
 
 const simulateAsyncPause = () =>
   new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), 3000);
+    setTimeout(() => resolve(), 1000);
   });
 
 describe("cdc service", () => {
@@ -160,7 +160,7 @@ describe("cdc service", () => {
       MONGO_COLLECTION_NAME,
       processResults,
       undefined,
-      { timeout: 10000 },
+      { timeout: 5000 },
     )(mongoDBService)();
 
     expect(E.isRight(result)).toBeTruthy();
@@ -219,7 +219,7 @@ describe("cdc service", () => {
       expect(value).toHaveProperty("id");
       expect(value.lease).toHaveProperty("_data");
     }
-  }, 15000);
+  }, 10000);
 
   // it("should process table content starting from continuation token", async () => {
   //   // Checking that the lease container already exists

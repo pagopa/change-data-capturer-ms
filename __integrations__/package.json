@@ -7,7 +7,7 @@
     "author": "",
     "scripts": {
         "build": "tsc",
-        "test": "jest --runInBand"
+        "test": "jest --runInBand --verbose"
     },
     "dependencies": {
         "@azure/cosmos": "^4.0.0",
