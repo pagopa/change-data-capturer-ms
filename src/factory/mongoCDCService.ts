@@ -28,18 +28,9 @@ export const MONGO_LEASE_COLLECTION_NAME = "cdc-data-lease";
 
 const extractResultsFromChange = <T = Document>(
   change: ChangeStreamDocument<T>,
-): ReadonlyArray<unknown> =>
-  // switch (change?.operationType) {
-  //   case "insert":
-  //     return [{ data: change.fullDocument, operationType: "insert" }];
-  //   case "update":
-  //     return [{ data: change.fullDocument, operationType: "update" }];
-  //   case "delete":
-  //     return [{ data: change.documentKey, operationType: "delete" }];
-  //   default:
-  //     throw new Error(`Unsupported operation type: ${change.operationType}`);
-  // }
-  [{ data: change as ChangeStreamInsertDocument<T>, operationType: "insert" }];
+): ReadonlyArray<unknown> => [
+  { data: change as ChangeStreamInsertDocument<T>, operationType: "insert" },
+];
 const adaptProcessResults =
   (
     processResults: ProcessResult,

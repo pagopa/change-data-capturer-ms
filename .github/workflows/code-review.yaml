@@ -57,7 +57,7 @@ jobs:
         run: |
           docker-compose -f "__integrations__/docker-compose.yml" stop
           docker-compose -f "__integrations__/docker-compose.yml" down
-          docker system prune -a -f
+          # docker system prune -a -f
       
       - name: Start containers
         run: docker-compose -f "__integrations__/docker-compose.yml" up -d
@@ -72,6 +72,6 @@ jobs:
         run: |
           docker-compose -f "__integrations__/docker-compose.yml" stop
           docker-compose -f "__integrations__/docker-compose.yml" down
-          docker system prune -a -f
+          # docker system prune -a -f
 
       
