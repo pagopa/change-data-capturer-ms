@@ -62,6 +62,9 @@ jobs:
       - name: Start containers
         run: docker-compose -f "__integrations__/docker-compose.yml" up -d
 
+      - name: Sleep
+        run: sleep 30s
+
       - name: System tests
         run: |
           cd __integrations__
