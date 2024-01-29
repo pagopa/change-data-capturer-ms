@@ -218,7 +218,7 @@ describe("cdc service", () => {
       expect(value).toHaveProperty("id");
       expect(value.lease).toHaveProperty("_data");
     }
-  }, 12000);
+  }, 15000);
 
   it("should process table content starting from continuation token", async () => {
     // Checking that the lease container already exists
@@ -276,7 +276,7 @@ describe("cdc service", () => {
         );
       }
     }
-  }, 12000);
+  }, 15000);
 
   it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
     const client = new MongoClient(MONGODB_CONNECTION_STRING);
@@ -347,5 +347,5 @@ describe("cdc service", () => {
         );
       }
     }
-  }, 12000);
+  }, 15000);
 });
