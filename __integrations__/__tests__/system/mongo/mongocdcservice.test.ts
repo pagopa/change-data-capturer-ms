@@ -47,21 +47,21 @@ afterAll(async () => {
     for (var client of clients) {
       await client.close();
     }
-  }, 15000);
 
-  await pipe(
-    createMongoClient(MONGODB_CONNECTION_STRING),
-    TE.chainFirst((client) =>
-      pipe(
-        deleteDatabase(client, MONGODB_NAME),
-        TE.chain(() => disconnectMongo(client)),
+    await pipe(
+      createMongoClient(MONGODB_CONNECTION_STRING),
+      TE.chainFirst((client) =>
+        pipe(
+          deleteDatabase(client, MONGODB_NAME),
+          TE.chain(() => disconnectMongo(client)),
+        ),
       ),
-    ),
-    TE.getOrElse((e) => {
-      throw Error(`Cannot delete db ${JSON.stringify(e)}`);
-    }),
-  )();
-}, 10000);
+      TE.getOrElse((e) => {
+        throw Error(`Cannot delete db ${JSON.stringify(e)}`);
+      }),
+    )();
+  }, 15000);
+}, 20000);
 
 const processResults = (
   _: ReadonlyArray<unknown>,
@@ -218,7 +218,7 @@ describe("cdc service", () => {
       expect(value).toHaveProperty("id");
       expect(value.lease).toHaveProperty("_data");
     }
-  }, 12000);
+  }, 15000);
 
   it("should process table content starting from continuation token", async () => {
     // Checking that the lease container already exists
@@ -347,5 +347,5 @@ describe("cdc service", () => {
         );
       }
     }
-  }, 12000);
+  }, 15000);
 });
