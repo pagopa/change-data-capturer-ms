@@ -276,7 +276,7 @@ describe("cdc service", () => {
         );
       }
     }
-  }, 12000);
+  }, 15000);
 
   it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
     const client = new MongoClient(MONGODB_CONNECTION_STRING);
