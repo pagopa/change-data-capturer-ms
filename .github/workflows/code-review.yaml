@@ -66,7 +66,7 @@ jobs:
         run: |
           cd __integrations__
           yarn install --immutable
-          yarn test ./__tests__/system/mongo/mongocdcservice.ts
+          yarn test ./__tests__/system/mongo/mongocdcservice.test.ts 
 
       - name: Stop containers
         run: |
