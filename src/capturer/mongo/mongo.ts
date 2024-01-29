@@ -5,10 +5,54 @@ import {
   Binary,
   ChangeStream,
   ChangeStreamDocument,
+  ChangeStreamOptions,
   Collection,
   Document,
 } from "mongodb";
 import { IOpts } from "../cosmos/cosmos";
+
+export const watchStream = <T = Document>(
+  collection: Collection<T>,
+  params: ChangeStreamOptions,
+): E.Either<Error, ChangeStream<T, ChangeStreamDocument<T>>> =>
+  E.tryCatch(
+    () =>
+      collection.watch(
+        [
+          {
+            $match: {
+              operationType: { $in: ["insert", "update", "replace"] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              documentKey: 1,
+              fullDocument: 1,
+              ns: 1,
+            },
+          },
+        ],
+        params,
+      ),
+    () =>
+      new Error(
+        `Impossible to watch the ${collection.collectionName} collection`,
+      ),
+  );
+
+export const closeStream = <T = Document>(
+  stream: ChangeStream<T, ChangeStreamDocument<T>>,
+  opts: IOpts,
+): E.Either<Error, void> =>
+  E.tryCatch(
+    () => {
+      if (opts?.timeout) {
+        setTimeout(() => stream.close(), opts.timeout);
+      }
+    },
+    () => new Error(`Impossible to close the stream`),
+  );
 
 export const watchMongoCollection = <T = Document>(
   collection: Collection<T>,
@@ -29,35 +73,9 @@ export const watchMongoCollection = <T = Document>(
     })),
     O.getOrElseW(() => params),
     (watchParams) =>
-      E.tryCatch(
-        () => {
-          const docStream = collection.watch(
-            [
-              {
-                $match: {
-                  operationType: { $in: ["insert", "update", "replace"] },
-                },
-              },
-              {
-                $project: {
-                  _id: 1,
-                  documentKey: 1,
-                  fullDocument: 1,
-                  ns: 1,
-                },
-              },
-            ],
-            watchParams,
-          );
-          if (opts?.timeout) {
-            setTimeout(() => docStream.close(), opts.timeout);
-          }
-          return docStream;
-        },
-        () =>
-          new Error(
-            `Impossible to watch the ${collection.collectionName} collection`,
-          ),
+      pipe(
+        watchStream(collection, watchParams),
+        E.chainFirst((stream) => closeStream(stream, opts)),
       ),
   );
 
