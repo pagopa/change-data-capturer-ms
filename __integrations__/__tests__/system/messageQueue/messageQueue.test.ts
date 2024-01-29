@@ -86,22 +86,28 @@ describe("EventHubService", () => {
 
     pipe(
       TE.tryCatch(() => consumer.connect(), E.toError),
-      TE.tryCatch(
-        () => consumer.subscribe({ topic: MESSAGEQUEUE_TOPIC }),
-        E.toError,
+      TE.chain(() =>
+        TE.tryCatch(
+          () => consumer.subscribe({ topic: MESSAGEQUEUE_TOPIC }),
+          E.toError,
+        ),
       ),
-      TE.tryCatch(
-        () =>
-          consumer.run({
-            eachMessage: async ({ message }: EachMessagePayload) => {
-              messageToCompare = JSON.parse(message.value?.toString()!);
-            },
-          }),
-        E.toError,
+      TE.chain(() =>
+        TE.tryCatch(
+          () =>
+            consumer.run({
+              eachMessage: async ({ message }: EachMessagePayload) => {
+                messageToCompare = JSON.parse(message.value?.toString()!);
+              },
+            }),
+          E.toError,
+        ),
       ),
-      TE.tryCatch(() => waitForConsumerToJoinGroup(consumer), E.toError),
-      TE.tryCatch(() => waitForMessage(), E.toError),
-      TE.tryCatch(() => consumer.disconnect(), E.toError),
+      TE.chain(() =>
+        TE.tryCatch(() => waitForConsumerToJoinGroup(consumer), E.toError),
+      ),
+      TE.chain(() => TE.tryCatch(() => waitForMessage(), E.toError)),
+      TE.chain(() => TE.tryCatch(() => consumer.disconnect(), E.toError)),
     );
 
     expect(messageToCompare).toEqual(messageToSend);
