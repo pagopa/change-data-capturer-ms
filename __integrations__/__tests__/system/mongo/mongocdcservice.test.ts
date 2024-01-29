@@ -221,63 +221,63 @@ describe("cdc service", () => {
     }
   }, 10000);
 
-  // it("should process table content starting from continuation token", async () => {
-  //   // Checking that the lease container already exists
-  //   const client = new MongoClient(MONGODB_CONNECTION_STRING);
-  //   clients.push(client);
+  it("should process table content starting from continuation token", async () => {
+    // Checking that the lease container already exists
+    const client = new MongoClient(MONGODB_CONNECTION_STRING);
+    clients.push(client);
 
-  //   const item = await pipe(
-  //     service.getDatabase(client, MONGODB_NAME),
-  //     TE.chain((database) =>
-  //       pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
-  //     ),
-  //     TE.chain((container) =>
-  //       service.getItemByID(container, MONGO_COLLECTION_NAME),
-  //     ),
-  //   )();
+    const item = await pipe(
+      service.getDatabase(client, MONGODB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
+      ),
+      TE.chain((container) =>
+        service.getItemByID(container, MONGO_COLLECTION_NAME),
+      ),
+    )();
 
-  //   if (E.isRight(item)) {
-  //     expect(O.isSome(item.right)).toBeTruthy();
-  //   }
+    if (E.isRight(item)) {
+      expect(O.isSome(item.right)).toBeTruthy();
+    }
 
-  //   await simulateAsyncPause();
-  //   //Processing feed
-  //   await service.processChangeFeed(
-  //     client,
-  //     MONGODB_NAME,
-  //     MONGO_COLLECTION_NAME,
-  //     processResults,
-  //     undefined,
-  //     { timeout: 10000 },
-  //   )(mongoDBService)();
+    await simulateAsyncPause();
+    //Processing feed
+    await service.processChangeFeed(
+      client,
+      MONGODB_NAME,
+      MONGO_COLLECTION_NAME,
+      processResults,
+      undefined,
+      { timeout: 10000 },
+    )(mongoDBService)();
 
-  //   await simulateAsyncPause();
+    await simulateAsyncPause();
 
-  //   //Getting continuation token
-  //   const continuationToken = await pipe(
-  //     service.getDatabase(client, MONGODB_NAME),
-  //     TE.chain((database) =>
-  //       pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
-  //     ),
-  //     TE.chain((container) =>
-  //       service.getItemByID(container, MONGO_COLLECTION_NAME),
-  //     ),
-  //   )();
+    //Getting continuation token
+    const continuationToken = await pipe(
+      service.getDatabase(client, MONGODB_NAME),
+      TE.chain((database) =>
+        pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
+      ),
+      TE.chain((container) =>
+        service.getItemByID(container, MONGO_COLLECTION_NAME),
+      ),
+    )();
 
-  //   if (E.isRight(continuationToken)) {
-  //     expect(O.isSome(continuationToken.right)).toBeTruthy();
-  //     const continuationTokenItem = O.getOrElse<Item>(() => fail(""))(
-  //       continuationToken.right,
-  //     );
-  //     if (E.isRight(item)) {
-  //       const itemValue = O.getOrElse<Item>(() => fail(""))(item.right);
-  //       //Checking that the continuation token has not been incremented and no records have been processed
-  //       expect(itemValue.lease._data).toEqual(
-  //         continuationTokenItem.lease._data,
-  //       );
-  //     }
-  //   }
-  // }, 15000);
+    if (E.isRight(continuationToken)) {
+      expect(O.isSome(continuationToken.right)).toBeTruthy();
+      const continuationTokenItem = O.getOrElse<Item>(() => fail(""))(
+        continuationToken.right,
+      );
+      if (E.isRight(item)) {
+        const itemValue = O.getOrElse<Item>(() => fail(""))(item.right);
+        //Checking that the continuation token has not been incremented and no records have been processed
+        expect(itemValue.lease._data).toEqual(
+          continuationTokenItem.lease._data,
+        );
+      }
+    }
+  }, 15000);
 
   // it("should process table content starting from continuation token - insert new item and check the continuation token", async () => {
   //   const client = new MongoClient(MONGODB_CONNECTION_STRING);
