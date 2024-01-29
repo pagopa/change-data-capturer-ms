@@ -7,7 +7,7 @@
     "author": "",
     "scripts": {
         "build": "tsc",
-        "test": "jest --runInBand --detectOpenHandles"
+        "test": "jest --runInBand"
     },
     "dependencies": {
         "@azure/cosmos": "^4.0.0",
