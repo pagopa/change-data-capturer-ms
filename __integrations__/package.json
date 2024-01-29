@@ -6,10 +6,8 @@
     "keywords": [],
     "author": "",
     "scripts": {
-        "start": "docker-compose up -d",
-        "stop": "docker-compose down",
         "build": "tsc",
-        "test": "jest --runInBand"
+        "test": "jest --runInBand --verbose --detectOpenHandles"
     },
     "dependencies": {
         "@azure/cosmos": "^4.0.0",
