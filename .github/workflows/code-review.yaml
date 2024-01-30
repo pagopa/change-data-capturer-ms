@@ -62,11 +62,6 @@ jobs:
       
       - name: Start containers
         run: docker-compose -f "__integrations__/docker-compose.yml" up -d
-      
-      - name: Creating topic
-        run: |
-          docker exec --workdir /bin kafka kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic ${MESSAGEQUEUE_TOPIC} --replication-factor 1 --partitions 1
-          docker exec --workdir /bin kafka kafka-topics --bootstrap-server kafka:9092 --list
 
       - name: Sleep
         run: sleep 30s

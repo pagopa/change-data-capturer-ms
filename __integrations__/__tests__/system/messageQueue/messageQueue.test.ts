@@ -20,8 +20,18 @@ import {
   MESSAGEQUEUE_GROUPID,
   MESSAGEQUEUE_TOPIC,
 } from "../../../env";
+import { createTopic } from "../../../utils/kafka";
 
-function getRandomKeyValueObject(): { [key: string]: any } {
+beforeAll(async () => {
+  await pipe(
+    createTopic(),
+    TE.getOrElse((e) => {
+      throw Error(`Cannot initialize topic - ${JSON.stringify(e.message)}`);
+    }),
+  )();
+});
+
+const getRandomKeyValueObject = (): { [key: string]: any } => {
   const characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const randomKey = characters.charAt(
     Math.floor(Math.random() * characters.length),
@@ -32,7 +42,7 @@ function getRandomKeyValueObject(): { [key: string]: any } {
   randomObject[randomKey] = randomValue;
 
   return randomObject;
-}
+};
 
 const waitForMessage = () =>
   new Promise((resolve, _) => {
@@ -78,12 +88,6 @@ const run = (
 ): TE.TaskEither<Error, void> =>
   TE.tryCatch(() => consumer.run({ eachMessage: fn }), E.toError);
 
-const waitConsumer = (consumer: Consumer): TE.TaskEither<Error, void> =>
-  pipe(
-    TE.tryCatch(() => waitForConsumerToJoinGroup(consumer), E.toError),
-    TE.map(constVoid),
-  );
-
 const waitMessage = (): TE.TaskEither<Error, void> =>
   pipe(
     TE.tryCatch(() => waitForMessage(), E.toError),
@@ -92,6 +96,7 @@ const waitMessage = (): TE.TaskEither<Error, void> =>
 
 const disconnect = (consumer: Consumer): TE.TaskEither<Error, void> =>
   TE.tryCatch(() => consumer.disconnect(), E.toError);
+
 describe("EventHubService", () => {
   it("Sending event to EventHub successfully", async () => {
     const messageToSend = getRandomKeyValueObject();
