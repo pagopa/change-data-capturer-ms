@@ -138,8 +138,7 @@ describe("cdc service", () => {
     clients.push(client);
     // Checking that no lease container exists
     const container = await pipe(
-      client,
-      (client) => service.getDatabase(client, MONGODB_NAME),
+      service.getDatabase(client, MONGODB_NAME),
       TE.chain((database) =>
         pipe(service.getResource(database, MONGO_LEASE_COLLECTION_NAME)),
       ),
@@ -166,8 +165,7 @@ describe("cdc service", () => {
     await simulateAsyncPause();
 
     await pipe(
-      client,
-      (client) => service.getDatabase(client, MONGODB_NAME),
+      service.getDatabase(client, MONGODB_NAME),
       // Checking that the lease container have been created
       TE.chain((database) =>
         pipe(
@@ -193,8 +191,7 @@ describe("cdc service", () => {
     await simulateAsyncPause();
 
     const item = await pipe(
-      client,
-      (client) => service.getDatabase(client, MONGODB_NAME),
+      service.getDatabase(client, MONGODB_NAME),
       // Checking that the lease container have been created
       TE.chain((database) =>
         pipe(
