@@ -1,6 +1,7 @@
 import {
   AzureEventhubSasFromString,
   KafkaProducerCompact,
+  fromConfig,
   fromSas,
   sendMessages,
 } from "@pagopa/fp-ts-kafkajs/dist/lib/KafkaProducerCompact";
@@ -15,6 +16,38 @@ export const getEventHubProducer = <T>(
     AzureEventhubSasFromString.decode(connectionString),
     E.map((sas) => fromSas<T>(sas)),
     E.mapLeft(() => new Error(`Error during decoding Event Hub SAS`)),
+  );
+
+export const fromSasPlain = <T>(
+  broker: string,
+  clientId: string,
+  topic: string,
+): KafkaProducerCompact<T> =>
+  pipe(
+    {
+      brokers: [`${broker}`],
+      clientId,
+      idempotent: true,
+      maxInFlightRequests: 1,
+      ssl: false,
+      topic,
+      transactionalId: clientId,
+    },
+    (fullConfig) => fromConfig(fullConfig, fullConfig),
+  );
+export const getPlainEventHubProducer = <T>(
+  broker: string,
+  clientId: string,
+  topic: string,
+): E.Either<Error, KafkaProducerCompact<T>> =>
+  pipe(
+    E.tryCatch(
+      () => fromSasPlain<T>(broker, clientId, topic),
+      (error) =>
+        new Error(
+          `Error during creating Event Hub producer - ${JSON.stringify(error)}`,
+        ),
+    ),
   );
 
 export const sendMessageEventHub =

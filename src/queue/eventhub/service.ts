@@ -3,7 +3,11 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
 import { pipe } from "fp-ts/lib/function";
-import { getEventHubProducer, sendMessageEventHub } from "./utils";
+import {
+  fromSasPlain,
+  getEventHubProducer,
+  sendMessageEventHub,
+} from "./utils";
 
 export type QueueProducer<T> = KafkaProducerCompact<T>;
 export interface IQueueService {
@@ -12,15 +16,23 @@ export interface IQueueService {
   ) => TE.TaskEither<Error, void>;
 }
 
-export const eventHubService = {
-  produce: sendMessageEventHub,
-};
-
 export const createEventHubService = (
   connectionString: string,
 ): E.Either<Error, IQueueService> =>
   pipe(
     getEventHubProducer(connectionString),
+    E.map((producer) => ({
+      produce: sendMessageEventHub(producer),
+    })),
+  );
+
+export const createPlainEventHubService = (
+  broker: string,
+  clientId: string,
+  topic: string,
+): E.Either<Error, IQueueService> =>
+  pipe(
+    E.tryCatch(() => fromSasPlain(broker, clientId, topic), E.toError),
     E.map((producer) => ({
       produce: sendMessageEventHub(producer),
     })),
