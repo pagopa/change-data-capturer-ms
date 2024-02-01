@@ -6,8 +6,6 @@
     "keywords": [],
     "author": "",
     "scripts": {
-        "start": "docker-compose up -d",
-        "stop": "docker-compose down",
         "build": "tsc",
         "test": "jest --runInBand"
     },

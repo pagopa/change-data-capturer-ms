@@ -3,7 +3,6 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
 import { Collection, Db, MongoClient } from "mongodb";
-import { insertDocument } from "../../src/capturer/mongo/utils";
 
 export const MONGO_COLLECTION_NAME = "integration-collection";
 export const MONGO_LEASE_COLLECTION_NAME = "integration-lease-collection";
@@ -47,10 +46,7 @@ export const createAllCollections = (
 ): TE.TaskEither<Error, readonly Collection[]> =>
   pipe(
     [
-      pipe(
-        createCollection(database, MONGO_COLLECTION_NAME),
-        TE.chainFirst((collection) => insertDocument(collection, { id: ID })),
-      ),
+      pipe(createCollection(database, MONGO_COLLECTION_NAME)),
       createCollection(database, MONGO_LEASE_COLLECTION_NAME),
     ],
     RA.sequence(TE.ApplicativePar),

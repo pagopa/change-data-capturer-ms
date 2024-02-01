@@ -59,7 +59,9 @@ describe("mongoCDCService", () => {
     )(mockDBServiceClient)();
 
     expect(result).toEqual(right(undefined));
-    expect(watchMongoCollection).toHaveBeenCalledWith(mockCollection, "test");
+    expect(watchMongoCollection).toHaveBeenCalledWith(mockCollection, "test", {
+      prefix: "test-prefix",
+    });
   });
 
   it("should process change feed successfully without lease", async () => {
@@ -79,6 +81,7 @@ describe("mongoCDCService", () => {
     expect(watchMongoCollection).toHaveBeenCalledWith(
       mockCollection,
       undefined,
+      { prefix: "test-prefix" },
     );
   });
 

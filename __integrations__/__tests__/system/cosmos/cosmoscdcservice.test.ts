@@ -3,17 +3,20 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import { pipe } from "fp-ts/lib/function";
-import { upsertItem } from "../../src/capturer/cosmos/utils";
-import { LEASE_CONTAINER_NAME } from "../../src/factory/cosmosCDCService";
-import { cosmosDBService } from "../../src/factory/cosmosDBService";
-import { ServiceType, createDatabaseService } from "../../src/factory/factory";
-import { Item } from "../../src/factory/service";
-import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../env";
+import { upsertItem } from "../../../../src/capturer/cosmos/utils";
+import { LEASE_CONTAINER_NAME } from "../../../../src/factory/cosmosCDCService";
+import { cosmosDBService } from "../../../../src/factory/cosmosDBService";
+import {
+  ServiceType,
+  createDatabaseService,
+} from "../../../../src/factory/factory";
+import { Item } from "../../../../src/factory/service";
+import { COSMOSDB_CONNECTION_STRING, COSMOSDB_NAME } from "../../../env";
 import {
   COSMOS_COLLECTION_NAME,
   createCosmosDbAndCollections,
   deleteDatabase,
-} from "../utils/cosmos";
+} from "../../../utils/cosmos";
 const service = createDatabaseService(ServiceType.Cosmos);
 const cosmosClient = new CosmosClient(COSMOSDB_CONNECTION_STRING);
 
