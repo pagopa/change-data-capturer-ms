@@ -716,6 +716,16 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@pagopa/data-indexer-commons@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@pagopa/data-indexer-commons/-/data-indexer-commons-0.0.6.tgz#c37328fe004afee122ffe5c645371267cf12d3a0"
+  integrity sha512-f9DvFBYDPwqKp23F42rSzmyYIj7TyO5p1ZQ86airejt7KyqhtFFveyhh7vypvSSQrATv8ii3DTjMNoelQqh6EA==
+  dependencies:
+    "@pagopa/ts-commons" "^12.4.1"
+    fp-ts "^2.16.1"
+    io-ts "^2.2.21"
+    io-ts-types "^0.5.19"
+
 "@pagopa/eslint-config@^3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@pagopa/eslint-config/-/eslint-config-3.0.0.tgz#a773121788299eaeb9ba71c2ad2bf5ea795028d6"
