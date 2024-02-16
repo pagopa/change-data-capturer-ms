@@ -8,6 +8,7 @@ import {
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
+import { EventHubProducerClient } from "@azure/event-hubs";
 
 export const getEventHubProducer = <T>(
   connectionString: string,
@@ -64,4 +65,18 @@ export const sendMessageEventHub =
               .join(", ")}`,
           ),
       ),
+    );
+
+export const getNativeEventHubProducer = (
+  connectionString: string,
+): E.Either<Error, EventHubProducerClient> =>
+  pipe(new EventHubProducerClient(connectionString), E.right);
+
+export const sendMessageNativeEventHub =
+  <T>(messagingClient: EventHubProducerClient) =>
+  (messages: ReadonlyArray<T>): TE.TaskEither<Error, void> =>
+    pipe(
+      messages.map((msg) => ({ body: msg })),
+      (msgEventData) =>
+        TE.tryCatch(() => messagingClient.sendBatch(msgEventData), E.toError),
     );

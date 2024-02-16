@@ -6,7 +6,9 @@ import { pipe } from "fp-ts/lib/function";
 import {
   fromSasPlain,
   getEventHubProducer,
+  getNativeEventHubProducer,
   sendMessageEventHub,
+  sendMessageNativeEventHub,
 } from "./utils";
 
 export type QueueProducer<T> = KafkaProducerCompact<T>;
@@ -15,6 +17,16 @@ export interface IQueueService {
     messages: ReadonlyArray<T>,
   ) => TE.TaskEither<Error, void>;
 }
+
+export const createNativeEventHubService = (
+  connectionString: string,
+): E.Either<Error, IQueueService> =>
+  pipe(
+    getNativeEventHubProducer(connectionString),
+    E.map((producer) => ({
+      produce: sendMessageNativeEventHub(producer),
+    })),
+  );
 
 export const createEventHubService = (
   connectionString: string,
