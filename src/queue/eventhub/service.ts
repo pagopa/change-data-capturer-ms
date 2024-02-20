@@ -1,8 +1,8 @@
 import { KafkaProducerCompact } from "@pagopa/fp-ts-kafkajs/dist/lib/KafkaProducerCompact";
 import * as E from "fp-ts/Either";
-import * as TE from "fp-ts/TaskEither";
 
 import { pipe } from "fp-ts/lib/function";
+import { IQueueService } from "../factory";
 import {
   fromSasPlain,
   getEventHubProducer,
@@ -12,11 +12,6 @@ import {
 } from "./utils";
 
 export type QueueProducer<T> = KafkaProducerCompact<T>;
-export interface IQueueService {
-  readonly produce: <T>(
-    messages: ReadonlyArray<T>,
-  ) => TE.TaskEither<Error, void>;
-}
 
 export const createNativeEventHubService = (
   connectionString: string,
@@ -28,7 +23,7 @@ export const createNativeEventHubService = (
     })),
   );
 
-export const createEventHubService = (
+export const createKafkaService = (
   connectionString: string,
 ): E.Either<Error, IQueueService> =>
   pipe(

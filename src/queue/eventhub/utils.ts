@@ -70,7 +70,11 @@ export const sendMessageEventHub =
 export const getNativeEventHubProducer = (
   connectionString: string,
 ): E.Either<Error, EventHubProducerClient> =>
-  pipe(new EventHubProducerClient(connectionString), E.right);
+  pipe(
+    AzureEventhubSasFromString.decode(connectionString),
+    E.map(() => new EventHubProducerClient(connectionString)),
+    E.mapLeft(() => new Error(`Error during decoding Event Hub SAS`)),
+  );
 
 export const sendMessageNativeEventHub =
   <T>(messagingClient: EventHubProducerClient) =>
