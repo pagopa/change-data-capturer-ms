@@ -11,7 +11,7 @@ import {
   KafkaConfig,
 } from "kafkajs";
 import {
-  createEventHubService,
+  createKafkaService,
   createPlainEventHubService,
 } from "../../../../src/queue/eventhub/service";
 import {
@@ -141,7 +141,7 @@ describe("EventHubService", () => {
   it("Sending event to EventHub with error", async () => {
     const message = getRandomKeyValueObject();
     const result = await pipe(
-      createEventHubService("fake-connection"),
+      createKafkaService("fake-connection"),
       TE.fromEither,
       TE.chain((producer) => producer.produce([message])),
     )();

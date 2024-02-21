@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
-    "@pagopa/fp-ts-kafkajs": "^0.3.0",
+    "@azure/event-hubs": "^5.11.3",
+    "@pagopa/fp-ts-kafkajs": "^1.0.1",
     "@pagopa/winston-ts": "^2.2.0",
     "@pagopa/ts-commons": "^12.4.1",
     "@pagopa/data-indexer-commons": "^0.0.6",

@@ -1,6 +1,5 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
-import * as B from "fp-ts/boolean";
 import { pipe } from "fp-ts/lib/function";
 import {
   Binary,
@@ -46,15 +45,21 @@ export const closeStream = <T = Document>(
   opts: IOpts,
 ): E.Either<Error, void> =>
   pipe(
-    opts?.timeout !== null,
-    B.fold(
-      () => E.right(void 0),
-      () =>
-        E.tryCatch(
-          () => setTimeout(() => stream.close(), opts?.timeout),
-          () => new Error(`Impossible to close the stream`),
+    opts?.timeout,
+    O.fromNullable,
+    O.chain((timeout) =>
+      pipe(
+        stream,
+        O.fromNullable,
+        O.map((nonNullableStream) =>
+          E.tryCatch(
+            () => setTimeout(() => nonNullableStream.close(), timeout),
+            () => new Error(`Impossible to close the stream`),
+          ),
         ),
+      ),
     ),
+    O.getOrElse(() => E.right(void 0)),
   );
 
 export const watchMongoCollection = <T = Document>(
