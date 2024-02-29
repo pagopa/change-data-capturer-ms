@@ -25,6 +25,7 @@ jobs:
     permissions:
       contents: write
       actions: write
+      packages: write
     steps:
       - name: Checkout
         id: checkout
@@ -78,7 +79,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ env.GITHUB_TOKEN }}
-          logout: false
 
       - name: Docker meta
         uses: docker/metadata-action@dbef88086f6cef02e264edb7dbf63250c17cef6c # v5.5.0
