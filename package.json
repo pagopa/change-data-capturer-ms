@@ -23,6 +23,7 @@
     ]
   },
   "dependencies": {
+    "@azure/identity": "^4.0.1",
     "@azure/cosmos": "^4.0.0",
     "@azure/event-hubs": "^5.11.3",
     "@pagopa/fp-ts-kafkajs": "^1.0.1",
