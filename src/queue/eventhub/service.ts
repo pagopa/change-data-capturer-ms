@@ -2,11 +2,18 @@ import { KafkaProducerCompact } from "@pagopa/fp-ts-kafkajs/dist/lib/KafkaProduc
 import * as E from "fp-ts/Either";
 
 import { pipe } from "fp-ts/lib/function";
-import { IQueueService } from "../factory";
+import { errorsToReadableMessages } from "@pagopa/ts-commons/lib/reporters";
+import {
+  EvhAuthQueueParams,
+  EvhPasswordLessQueueParams,
+  EvhQueueParams,
+  IQueueService,
+} from "../factory";
 import {
   fromSasPlain,
   getEventHubProducer,
   getNativeEventHubProducer,
+  getPasswordLessNativeEventHubProducer,
   sendMessageEventHub,
   sendMessageNativeEventHub,
 } from "./utils";
@@ -14,10 +21,40 @@ import {
 export type QueueProducer<T> = KafkaProducerCompact<T>;
 
 export const createNativeEventHubService = (
-  connectionString: string,
+  params: EvhQueueParams,
 ): E.Either<Error, IQueueService> =>
   pipe(
-    getNativeEventHubProducer(connectionString),
+    params,
+    EvhPasswordLessQueueParams.decode,
+    E.mapLeft((errs) =>
+      Error(
+        `Cannot decode Event Hub passwordless params|ERROR=${errorsToReadableMessages(
+          errs,
+        )}`,
+      ),
+    ),
+    E.chain((passwordLessParams) =>
+      getPasswordLessNativeEventHubProducer(
+        passwordLessParams.hostName,
+        passwordLessParams.topicName,
+      ),
+    ),
+    E.orElse(() =>
+      pipe(
+        params,
+        EvhAuthQueueParams.decode,
+        E.mapLeft((errs) =>
+          Error(
+            `Cannot decode Event Hub plain connection params|ERROR=${errorsToReadableMessages(
+              errs,
+            )}`,
+          ),
+        ),
+        E.chain((connectionParams) =>
+          getNativeEventHubProducer(connectionParams.connectionString),
+        ),
+      ),
+    ),
     E.map((producer) => ({
       produce: sendMessageNativeEventHub(producer),
     })),

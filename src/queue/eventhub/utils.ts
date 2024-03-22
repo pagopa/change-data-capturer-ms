@@ -9,6 +9,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import { EventHubProducerClient } from "@azure/event-hubs";
+import { DefaultAzureCredential } from "@azure/identity";
 
 export const getEventHubProducer = <T>(
   connectionString: string,
@@ -73,6 +74,17 @@ export const getNativeEventHubProducer = (
   pipe(
     AzureEventhubSasFromString.decode(connectionString),
     E.map(() => new EventHubProducerClient(connectionString)),
+    E.mapLeft(() => new Error(`Error during decoding Event Hub SAS`)),
+  );
+
+export const getPasswordLessNativeEventHubProducer = (
+  hostName: string,
+  topicName: string,
+): E.Either<Error, EventHubProducerClient> =>
+  pipe(
+    new DefaultAzureCredential(),
+    (credentials) =>
+      E.right(new EventHubProducerClient(hostName, topicName, credentials)),
     E.mapLeft(() => new Error(`Error during decoding Event Hub SAS`)),
   );
 

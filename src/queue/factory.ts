@@ -1,7 +1,6 @@
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
-import * as O from "fp-ts/lib/Option";
-import { pipe } from "fp-ts/lib/function";
+import * as t from "io-ts";
 import {
   createKafkaService,
   createNativeEventHubService,
@@ -17,29 +16,53 @@ export enum QueueType {
   Kafka,
 }
 
+export const BaseQueueParams = t.type({
+  connectionString: t.string,
+});
+export type BaseQueueParams = t.TypeOf<typeof BaseQueueParams>;
+
+export const EvhPasswordLessQueueParams = t.type({
+  hostName: t.string,
+  queueType: t.literal(QueueType.EventHub),
+  topicName: t.string,
+  useManagedIdentity: t.literal(true),
+});
+export type EvhPasswordLessQueueParams = t.TypeOf<
+  typeof EvhPasswordLessQueueParams
+>;
+export const EvhAuthQueueParams = t.intersection([
+  BaseQueueParams,
+  t.type({
+    queueType: t.literal(QueueType.EventHub),
+    useManagedIdentity: t.literal(false),
+  }),
+]);
+export type EvhAuthQueueParams = t.TypeOf<typeof EvhAuthQueueParams>;
+
+export const KafkaQueueParams = t.intersection([
+  BaseQueueParams,
+  t.type({
+    queueType: t.literal(QueueType.Kafka),
+  }),
+]);
+
+export type KafkaQueueParams = t.TypeOf<typeof KafkaQueueParams>;
+
+export type EvhQueueParams = EvhAuthQueueParams | EvhPasswordLessQueueParams;
+
+export type QueueParams = EvhQueueParams | KafkaQueueParams;
+
 export const notSupportedError = "Queue type still not supported";
 
 export const createInternalQueueService = (
-  type: QueueType,
-  connectionString: string,
+  queueParams: QueueParams,
 ): E.Either<Error, IQueueService> => {
-  switch (type) {
+  switch (queueParams.queueType) {
     case QueueType.Kafka:
-      return createKafkaService(connectionString);
+      return createKafkaService(queueParams.connectionString);
     case QueueType.EventHub:
-      return createNativeEventHubService(connectionString);
+      return createNativeEventHubService(queueParams);
     default:
       E.left(new Error(notSupportedError));
   }
 };
-
-export const getInternalQueueService = (
-  connectionString: string,
-  queueType?: QueueType,
-): E.Either<Error, IQueueService> =>
-  pipe(
-    queueType,
-    O.fromNullable,
-    O.map((type) => createInternalQueueService(type, connectionString)),
-    O.getOrElse(() => createNativeEventHubService(connectionString)),
-  );
