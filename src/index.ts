@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { defaultLog, useWinston, withConsole } from "@pagopa/winston-ts";
+import { createApp } from "./app";
 
-useWinston(withConsole());
-
-const main = () => defaultLog.taskEither.info("Initializing App");
-
-void main();
+createApp()
+  .then(console.log)
+  .catch(console.error);

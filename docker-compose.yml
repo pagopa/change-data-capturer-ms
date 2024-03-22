@@ -1,0 +1,31 @@
+version: "2.2"
+
+services:
+
+  cdc-ms:
+    container_name: cdc-ms
+    restart: always
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    expose:
+      - "3000"
+      - "80"
+    ports:
+      - "3000:3000"
+      - "80:80"
+    command: ["node", "dist/index.js"]
+    networks:
+      - cdc-be
+
+volumes:
+  certs:
+    driver: local
+
+networks:
+  cdc-be:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450
