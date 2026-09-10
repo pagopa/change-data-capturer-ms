@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   mongo1:
-    image: mongo:7.0
+    image: mongo:7.0@sha256:b096b4cb9269f3ebcf363be63f1c50920f786879d03a1890347a3bf33f1f0df0
     command:
       [
         "--replSet",
@@ -26,7 +26,7 @@ services:
       - "mongo1_config:/data/configdb"
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:latest@sha256:7610a50b13e7e9f6dc0dd00585ffdcb0bbed27392bef6b45791ef4087b2a746c
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -35,7 +35,7 @@ services:
       - "2181:2181"
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:latest@sha256:0ad069035863aa1b090f4d9af47bfd2c08dc32864f3575d7d8579e3155c2586d
     container_name: kafka
     hostname: kafka
     ports:
